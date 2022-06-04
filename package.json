@@ -1,0 +1,19 @@
+{
+  "name": "dice_games",
+  "version": "1.0.0",
+  "description": "a collection of multiplayer dice games",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "dice",
+    "games"
+  ],
+  "author": "jgorton",
+  "license": "ISC",
+  "dependencies": {
+    "websocket": "^1.0.34",
+    "ws": "^8.7.0"
+  }
+}
