@@ -28,3 +28,4 @@ having a hard time getting this to work on local, already had to fix some typos 
 ## test.a
 taken from docker test which was a bare-bones expo from engineerman (youtube)
 res.write was just not working for me for some reason, but res.createReadStream worked and is apparently better to use anyway
+if changes are made to the websocket server, must rebuild the docker image before redeploying
