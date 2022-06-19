@@ -1,3 +1,8 @@
+"use strict";
+
+var ws = null;
+var clientID = 0;
+
 function connect() {
     if (!("WebSocket" in window)) {
         alert("WebSocket NOT supported by your Browser!");
@@ -6,7 +11,7 @@ function connect() {
 
     // Let us open a web socket
     // var ws = new WebSocket("ws://localhost:1313/test");
-    var ws = new WebSocket("ws://localhost:1313/test", "json");
+    ws = new WebSocket("ws://localhost:1313/test", "json");
 
     ws.onopen = function () {
         // Web Socket is connected, send data using send()
@@ -19,7 +24,6 @@ function connect() {
         // var msg = evt.data;
         // alert('Message is received... "' + msg + '"');
 
-        var f = document.getElementById("chatbox").contentDocument;
         var text = "";
         console.log(evt.data);
         var msg = JSON.parse(evt.data);
@@ -54,6 +58,7 @@ function connect() {
         }
 
         if (text.length) {
+            var f = document.getElementById("chatbox").contentDocument;
             f.write(text);
             document.getElementById("chatbox").contentWindow.scrollByPages(1);
         }
@@ -69,15 +74,31 @@ function connect() {
     };
 }
 
+function setUsername() {
+    console.log("***SETUSERNAME");
+    var msg = {
+        name: document.getElementById("name").value,
+        date: Date.now(),
+        id: clientID,
+        type: "username"
+    };
+    ws.send(JSON.stringify(msg));
+}
+
 function send() {
-    console.log("***SEND");
+    if (!ws) {
+        console.error("WebSocket connection is null. Can't send message.");
+    }
+
     var msg = {
         text: document.getElementById("text").value,
         type: "message",
         id: clientID,
         date: Date.now()
     };
-    connection.send(JSON.stringify(msg));
+    console.log("***SEND: " + JSON.stringify(msg));
+
+    ws.send(JSON.stringify(msg));
     document.getElementById("text").value = "";
 }
 
