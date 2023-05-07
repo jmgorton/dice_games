@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>Lotto Sim</title>
+        <meta charset="utf-8" />
+        <script type="text/javascript">
+            function playLotto() {
+                // alert("woohoo!")
+                // console.log("playing the lotto with " + numTickets + "....");
+
+                const numTickets = document.getElementById("numTickets").value;
+                console.log("now playing with " + numTickets + " tickets.");
+
+                for (let i = 0; i < 1; i++) {
+                    // Mega Millions is 5@1/70 + 1@1/25
+                    // Powerball is 5@1/69 + 1@1/26
+                    let matchedNums = []
+                    let rand = Math.floor(Math.random() * 70 * 69 * 68 * 67 * 66 * 25 / numTickets);
+                    console.log("Well... " + rand + " is what we got.")
+                    if (rand === 0) {
+                        console.log("THAT'S A WINNER! One of the tickets we bought this drawing won.");
+                        return true;
+                    }
+
+                    /** for (let i = 0; i < 5; i++) {
+                        let rand = Math.random();
+                        console.log("rand = " + rand);
+                        let randBitshifted = rand << 7;
+                        console.log("randBitshifted = " + randBitshifted);
+                        let num = Math.floor(Math.random() * 70);
+                        console.log("Calculating...");
+                        console.log("num = " + num);
+                        matchedNums[i] = num === 0;
+                        // sim 1/70 odds => if the random number is a multiple of 70
+                        console.log("So " + num + " is " + matchedNums[i] ? "" : "not " + "a match- only 0 matches! (1/70 odds)");
+                    }
+
+                    let num = Math.floor(Math.random << 6) % 25;
+                    matchedNums[5] = num === 0;
+                    // sim 1/25 odds => if the random number is a multiple of 25
+                    console.log("Well, " + num + " is " + matchedNums[5] ? "" : "not " + "a match- only 0 matches! (1/25 odds)");
+
+                    let result = "You got ";
+                    let matches = 0;
+                    for (let match in matchedNums) {
+                        if (match === true) {
+                            matches = matches + 1;
+                        }
+                    }
+                    result = result + matches + " matches. ";
+                    if (matches < 4) {
+                        result = result + "Pretty typical run. You won $10 or less. This covered today's ticket plus the previous 3 that you lost on. ";
+                    } if (matches < 6) {
+                        result = result + "Now this is good. You won a few hundred, or $10,000, or even a million. Not the jackpot though. ";
+                    } if (matches === 6) {
+                        result = result + "This is what we were waiting for! You won the jackpot. ";
+                        return true;
+                    } */
+                    // document.getElementById("results").innerText = result;
+                }
+
+                return false;
+            }
+
+            function playUntilJackpot() {
+                let numDrawings = 0;
+                let jackpot = false;
+                while (jackpot === false) {
+                    numDrawings = numDrawings + 1;
+                    jackpot = playLotto();
+                    if (numDrawings % 10000 === 0) {
+                        console.log("Passing " + numDrawings + " drawings...");
+                    }
+                }
+
+                console.log("Woo! we got a jackpot and it only took " + numDrawings + " drawings. It took this sim " + (numDrawings / 5200) + " years, " + ((numDrawings % 5200) / 100) + " weeks to hit the jackpot.")
+                let result = "Woo! we got a jackpot and it only took " + numDrawings + " drawings. It took this sim " + (numDrawings / 5200) + " years, " + ((numDrawings % 5200) / 100) + " weeks to hit the jackpot.";
+                document.getElementById("results").innerText = result;
+            }
+        </script>
+    </head>
+    <body>
+        <p>
+            Let's assume a remaining lifespan of 50 years
+            With two drawings per week for 52 weeks a year, that ends up being 104 drawings per year, or 5,200 drawings reminging within your lifetime.
+        </p>
+        <p>
+            How many tickets per drawing will you buy? 
+            <input id="numTickets" type="number" placeholder="Huh? How many?" />
+            <input type="button" name="Calculate!" value="Calculate!" onclick="playUntilJackpot()" />
+        </p>
+        <p id="results">
+            Let's see if you win!
+        </p>
+    </body>
+</html>
