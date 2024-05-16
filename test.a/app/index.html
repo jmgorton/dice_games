@@ -7,7 +7,13 @@
     <script type="text/javascript" src="utils.js"></script>
   </head>
   <body>
-    <h1>hi from <a id="hostname"></a></h1>
+  <!-- <body onload="document.getElementById('hostname').innerHTML='something'"> -->
+    <!-- <script type="text/javascript">
+      const os = require('os') 
+      // document.addEventListener("load", ) 
+      document.getElementById("hostname").innerHTML = os.hostname(); 
+    </script> -->
+    <h1>hi from <a id="hostname"><iframe id="testFrame" src="/hostname"></iframe></a></h1>
     <a href="http://localhost:1313/chat">Link to chat</a>
     <a href="http://localhost:1313/test">Link to test</a>
     <p>

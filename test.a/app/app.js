@@ -43,6 +43,10 @@ const server = http.createServer((req, res) => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'text/javascript');
         fs.createReadStream(__dirname + '/utils.js').pipe(res);
+    } else if (/^\/hostname$/.test(req.url)) {
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'text/html'); 
+        res.end('<p>' + os.hostname() + '</p>');
     } else {
         res.statusCode = 404;
         res.setHeader('Content-Type', 'text/html');
