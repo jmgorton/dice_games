@@ -22,7 +22,7 @@ const server = http.createServer((req, res) => {
     // res.setHeader('Content-Type', 'text/html');
     // res.end('<h1>hi from websock! ' + os.hostname() + '</h1>\n' + '<a href="http://localhost:1313">Home</a>');
 
-    if (/^\/$/.test(req.url)) {
+    if (/^\/$/.test(req.url)) { // not used? routing done by Nginx 
         res.statusCode = 200;
         res.setHeader('Content-Type', 'text/html');
         fs.createReadStream(__dirname + '/index.html').pipe(res);
