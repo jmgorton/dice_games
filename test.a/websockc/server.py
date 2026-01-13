@@ -1,36 +1,55 @@
 import asyncio
-from urllib.parse import parse_qs
-import websockets
-
+# from urllib.parse import parse_qs
 # from urllib.parse import urlparse, parse_qs
+import websockets
+import logging
+import queue
+from logging.handlers import QueueHandler, QueueListener
+
+# logging.basicConfig(level=logging.INFO)
+# logger = logging.getLogger(__name__)
+# logger.info("WebSocket server started")
+
+# enqueue log records synchronously (very fast) with QueueHandler, 
+# any actual blocking i/o performed in separate thread
+#   run by QueueListener, event loop remains responsive
+q = queue.Queue()
+stream_handler = logging.StreamHandler()
+listener = QueueListener(q, stream_handler)
+listener.start()
+
+logger = logging.getLogger("pywss")
+logger.setLevel(logging.INFO)
+logger.addHandler(QueueHandler(q))
 
 # This function is the handler for each client connection
 async def echo_handler(websocket):
 
+    # don't use sync print, blocking i/o, on the event loop thread 
+    # blocking logging i/o to stdout handled by worker thread 
     # parsed = urlparse(websocket.request.path)
     # print("path:", parsed.path)
     # print("query params:", parse_qs(parsed.query))
-
-    print(f"Received new connection request: {websocket.request}")
-    print(f"Client connected from path: {websocket.request.path}")
+    # logger.info(f"Received new connection request: {websocket.request}") 
+    logger.info(f"Client connected from path: {websocket.request.path}")
     try:
         # Loop indefinitely to receive messages from the client
         async for message in websocket:
-            print(f"Received message: {message}")
+            logger.info(f"Received message: {message}")
             # Send the received message back to the client
             await websocket.send(f"Server echoed: {message}")
     except websockets.exceptions.ConnectionClosed as e:
-        print(f"Connection closed: {e}")
+        logger.info(f"Connection closed: {e}")
     finally:
-        print("Client disconnected")
+        logger.info("Client disconnected")
 
 # Define the main function to start the server
 async def main():
     # Start the server on localhost, port 8765
     # The 'echo_handler' function will be called for every new connection
+    # to listen on all interfaces inside the docker container, don't bind to localhost in container 
     async with websockets.serve(echo_handler, "0.0.0.0", 8765): # changed localhost to 0.0.0.0
-        # to listen on all interfaces inside the docker container
-        print("WebSocket server started at ws://localhost:8765")
+        logger.info("WebSocket server started at ws://localhost:8765")
         # The server runs forever until interrupted (e.g., Ctrl+C)
         await asyncio.Future()  # Keeps the server running indefinitely
 
@@ -39,5 +58,5 @@ if __name__ == "__main__":
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
-        print("Server stopped by user")
+        logger.info("Server stopped by user")
 

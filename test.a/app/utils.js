@@ -11,7 +11,7 @@ function connectPyWSS() {
 
     const loc = window.location;
     const protocol = loc.protocol === "https:" ? "wss:" : "ws:";
-    const host = loc.host;
+    const host = loc.host; // ensure the browser connects to the same port nginx is listening on 
     const pywssURL = `${protocol}//${host}/pywss`;
 
     const socket = new WebSocket(pywssURL);

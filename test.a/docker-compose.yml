@@ -11,7 +11,6 @@ services:
       - ./websock:/opt/app
     command: node /opt/app/websock.js
   test:
-  # do i have to expose ports for test? ign 
     build: ./websockb
   pywss:
     build: ./websockc
