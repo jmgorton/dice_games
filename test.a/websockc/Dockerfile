@@ -8,11 +8,13 @@ COPY ./requirements.txt .
 
 FROM base AS staging
 
-RUN python3 -m pip install -r requirements.txt
+# python3 or python? 
+RUN python -m pip install -r requirements.txt 
 COPY ./ ./ 
 
 FROM staging AS ready
 
 # EXPOSE 8765
 
-CMD ["python3", "server.py"]
+# python3 or python? 
+CMD ["python", "server.py"]

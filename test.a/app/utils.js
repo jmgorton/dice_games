@@ -3,6 +3,39 @@
 var ws = null;
 var clientID = 0;
 
+function connectPyWSS() {
+    if (!("WebSocket" in window)) {
+        alert("WebSocket not supported by browser.");
+        return;
+    }
+
+    const loc = window.location;
+    const protocol = loc.protocol === "https:" ? "wss:" : "ws:";
+    const host = loc.host;
+    const pywssURL = `${protocol}//${host}/pywss`;
+
+    const socket = new WebSocket(pywssURL);
+
+    socket.addEventListener('open', function (event) {
+        console.log('Connected to server');
+        socket.send('Hello Server!');
+    });
+
+    socket.addEventListener('message', function (event) {
+        console.log('Message from server: ', event.data);
+        // socket.close(); // Close connection after receiving one message
+    });
+
+    socket.addEventListener('close', function (event) {
+        console.log('Connection closed');
+    });
+
+    socket.addEventListener('error', function (error) {
+        console.error('WebSocket Error: ', error);
+    });
+
+}
+
 function connect() {
     if (!("WebSocket" in window)) {
         alert("WebSocket NOT supported by your Browser!");
@@ -12,7 +45,7 @@ function connect() {
     // Let us open a web socket
     // var ws = new WebSocket("ws://localhost:1313/test");
     ws = new WebSocket("ws://localhost:1313/test", "json"); // TODO uncomment this after Python WSS test 
-    // ws = new WebSocket("ws://localhost:8765");
+    // ws = new WebSocket("ws://localhost:8765/pywss");
 
     ws.onopen = function () {
         // Web Socket is connected, send data using send()

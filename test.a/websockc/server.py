@@ -28,7 +28,8 @@ async def echo_handler(websocket):
 async def main():
     # Start the server on localhost, port 8765
     # The 'echo_handler' function will be called for every new connection
-    async with websockets.serve(echo_handler, "localhost", 8765):
+    async with websockets.serve(echo_handler, "0.0.0.0", 8765): # changed localhost to 0.0.0.0
+        # to listen on all interfaces inside the docker container
         print("WebSocket server started at ws://localhost:8765")
         # The server runs forever until interrupted (e.g., Ctrl+C)
         await asyncio.Future()  # Keeps the server running indefinitely
