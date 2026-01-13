@@ -63,18 +63,21 @@ server.listen(port, hostname, () => {
 
 
 function getRoot(req, res) {
+    console.log(`Getting root for req: ${req}`);
     res.statusCode = 200;
     res.setHeader('Content-Type', 'text/html');
     fs.createReadStream(__dirname + '/index.html').pipe(res);
 }
 
 function getUtils(req, res) {
+    console.log(`Getting utils for req: ${req}`);
     res.statusCode = 200;
     res.setHeader('Content-Type', 'text/javascript');
     fs.createReadStream(__dirname + '/utils.js').pipe(res);
 }
 
 function getNotFound(req, res) {
+    console.log(`Path not found for req: ${req}`);
     res.statusCode = 404;
     res.setHeader('Content-Type', 'text/html');
     // fs.createReadStream(__dirname + '/index.html').pipe(res);

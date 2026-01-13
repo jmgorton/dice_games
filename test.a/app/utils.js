@@ -11,7 +11,8 @@ function connect() {
 
     // Let us open a web socket
     // var ws = new WebSocket("ws://localhost:1313/test");
-    ws = new WebSocket("ws://localhost:1313/test", "json");
+    ws = new WebSocket("ws://localhost:1313/test", "json"); // TODO uncomment this after Python WSS test 
+    // ws = new WebSocket("ws://localhost:8765");
 
     ws.onopen = function () {
         // Web Socket is connected, send data using send()
