@@ -1,9 +1,18 @@
 import asyncio
+from urllib.parse import parse_qs
 import websockets
 
+# from urllib.parse import urlparse, parse_qs
+
 # This function is the handler for each client connection
-async def echo_handler(websocket, path):
-    print(f"Client connected from path: {path}")
+async def echo_handler(websocket):
+
+    # parsed = urlparse(websocket.request.path)
+    # print("path:", parsed.path)
+    # print("query params:", parse_qs(parsed.query))
+
+    print(f"Received new connection request: {websocket.request}")
+    print(f"Client connected from path: {websocket.request.path}")
     try:
         # Loop indefinitely to receive messages from the client
         async for message in websocket:

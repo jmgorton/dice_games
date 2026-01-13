@@ -13,6 +13,6 @@ COPY ./ ./
 
 FROM staging AS ready
 
-EXPOSE 8765
+# EXPOSE 8765
 
 CMD ["python3", "server.py"]
