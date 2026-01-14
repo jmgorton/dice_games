@@ -16,21 +16,27 @@
       document.getElementById("hostname").innerHTML = os.hostname(); 
     </script> -->
     <!-- iframe: margin: 0; padding: 0; -->
-    <h1>hi from <a id="hostname"><iframe id="testFrame" src="/hostname" style="border: none; display: block;"></iframe></a></h1>
-    <!-- <h1>hi from <span id="hostname">unknown host</span></h1> -->
+    <!-- <h1>hi from <a id="hostname"><iframe id="testFrame" src="/hostname" style="border: none; display: block;"></iframe></a></h1> -->
+    <h1>hi from <span id="hostname">unknown host</span></h1>
     <a href="http://localhost:1313/chat">Link to chat (websock)</a>
     <a href="http://localhost:1313/test">Link to test (websockb)</a>
     <a href="http://localhost:1313/pywss">Link to Python WSS (websockc)</a>
     <p>
       Enter a username:
       <input id="namePy" type="text" maxlength="12" placeholder="Your name" />
-      <input type="button" name="login" id="pywss-login" value="Log in to Py WSS" /> 
+      <input type="button" name="login" id="pywss-login" value="Log in to Py WSS (websockc)" /> 
       <!-- onclick="connectPyWSS()" -->
     </p>
     <p>
       Enter a username:
+      <input id="name-ws" type="text" maxlength="12" placeholder="Your name" />
+      <input type="button" name="login" id="test-ws-login" value="Log in to websock" /> 
+      <!-- onclick="connect()" -->
+    </p>
+    <p>
+      Enter a username:
       <input id="name" type="text" maxlength="12" placeholder="Your name" />
-      <input type="button" name="login" id="test-login" value="Log in to test (websockb)" /> 
+      <input type="button" name="login" id="test-wsb-login" value="Log in to test (websockb)" /> 
       <!-- onclick="connect()" -->
     </p>
     <table border="0" width="100%">

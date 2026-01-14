@@ -1,7 +1,22 @@
-const http = require('http');
-const os = require('os');
-const fs = require('fs');
+// const http = require('http');
+// const os = require('os');
+// const fs = require('fs');
+
+import http from 'http';
+import os from 'os';
+import fs from 'fs';
+
 // const websocket = require('ws');
+
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// __dirname is a CommonJS-specific global variable, not available in ES module scope
+// can replicate the functionality using the `import.meta.url` property and the 
+// built-in path and url modules
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const hostname = '0.0.0.0';
 const port = 6502;
@@ -18,11 +33,13 @@ const port = 6502;
 
 
 const server = http.createServer((req, res) => {
+
+    console.log(`Received request: ${req.method} ${req.url}`);
     // res.statusCode = 200;
     // res.setHeader('Content-Type', 'text/html');
     // res.end('<h1>hi from websock! ' + os.hostname() + '</h1>\n' + '<a href="http://localhost:1313">Home</a>');
 
-    if (/^\/$/.test(req.url)) { // not used? routing done by Nginx 
+    if (/^\/$/.test(req.url)) { // not used maybe? routing done by Nginx 
         res.statusCode = 200;
         res.setHeader('Content-Type', 'text/html');
         fs.createReadStream(__dirname + '/index.html').pipe(res);

@@ -1,0 +1,22 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "The UI and base HTTP server handling requests routed through Nginx at the root URI and serving responses, also allowing initiation of the connection handshake between this and sister websocket servers",
+  "license": "ISC",
+  "author": "jgorton",
+  "type": "module",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc --outDir dist"
+  },
+  "dependencies": {
+    "tsx": "^4.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.8",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}

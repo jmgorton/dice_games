@@ -15,13 +15,13 @@ function getRoot(req, res) {
 function getUtils(req, res) {
     res.statusCode = 200;
     res.setHeader('Content-Type', 'text/html');
-    fs.createReadStream(__dirname + '/utils.js').pipe(res);
+    fs.createReadStream(__dirname + '/utils/utils.js').pipe(res);
 }
 
 function getSocketUtils(req, res) {
     res.statusCode = 200;
     res.setHeader('Content-Type', 'text/html');
-    fs.createReadStream(__dirname + '/utils-socket.js').pipe(res);
+    fs.createReadStream(__dirname + '/utils/utils-socket.js').pipe(res);
 }
 
 function getNotFound(req, res) {

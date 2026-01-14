@@ -1,7 +1,3 @@
-// const http = require('http');
-// const os = require('os');
-// const fs = require('fs');
-
 import http from 'http';
 import os from 'os';
 import fs from 'fs';
@@ -21,8 +17,6 @@ const __dirname = path.dirname(__filename);
 const hostname = '0.0.0.0';
 const port = 3000;
 
-
-
 let routes = [
     {
         method: 'GET',
@@ -36,12 +30,12 @@ let routes = [
     },
     {
         method: 'GET',
-        url: /^\/utils\.js$/,
+        url: /^\/utils\.js/, // remove EOL char, return file based on req path
         run: getUtils,
     },
     {
         method: 'GET',
-        url: /^\/utils-socket\.js$/,
+        url: /^\/utils-socket\.js/, // remove EOL char, return file based on req path
         run: getSocketUtils,
     },
     {
@@ -60,11 +54,15 @@ const server = http.createServer((req, res) => {
     // res = http.ServerResponse 
 
     // console.log(req);
+    if (!req.url || req.url === undefined) {
+        getNotFound(req, res);
+        return;
+    }
 
     console.log(`Searching for route for ${req.method} ${req.url}`);
     let route = routes.find(route => {
-        console.log(`Comparing to route ${route.method} ${route.url}`)
-        return route.url.test(req.url) && route.method === req.method
+        // console.log(`Comparing to route ${route.method} ${route.url}`)
+        return route.url.test(req.url!) && route.method === req.method
     });
     console.log(`${route ? 'Found route' : 'No route found'} for ${req.method} ${req.url}... ${route}`)
 
@@ -72,30 +70,9 @@ const server = http.createServer((req, res) => {
     else {
         res.statusCode = 404;
         res.setHeader('Content-Type', 'text/html');
-        res.end('<h1>hi from ' + os.hostname() + '\'s default route not found catcher</h1>\n' + '<h3>the page you requested was not found... bummer!</h3>'
-        + '<p>please go back to the <a href="http://localhost:1313">homepage</a></p>');
+        res.end('<h1>hi from ' + os.hostname() + '</h1>\n' + '<h3>the page you requested was not found... bummer!</h3>'
+        + '<p>this is the default route not found catcher. please go back to the <a href="http://localhost:1313">homepage</a>.</p>');
     }
-
-    // if (/^\/$/.test(req.url)) {
-    //     res.statusCode = 200;
-    //     res.setHeader('Content-Type', 'text/html');
-    //     fs.createReadStream(__dirname + '/index.html').pipe(res);
-    // } else if (/^\/utils\.js$/.test(req.url)) {
-    //     res.statusCode = 200;
-    //     res.setHeader('Content-Type', 'text/javascript');
-    //     fs.createReadStream(__dirname + '/utils.js').pipe(res);
-    // } else if (/^\/hostname$/.test(req.url)) {
-    //     res.statusCode = 200;
-    //     res.setHeader('Content-Type', 'text/html'); 
-    //     res.end('<p>' + os.hostname() + '</p>');
-    // } else {
-    //     res.statusCode = 404;
-    //     res.setHeader('Content-Type', 'text/html');
-    //     res.end('<h1>hi from ' + os.hostname() + '</h1>\n' + '<h3>the page you requested was not found... bummer!</h3>'
-    //     + '<p>please go back to the <a href="http://localhost:1313">homepage</a></p>');
-    // }
-
-    // res.end('<h1>hi from ' + os.hostname() + '</h1>\n' + '<a href="http://localhost:1313/chat">Link to chat</a>\t<a href="http://localhost:1313/test">Link to test</a>');
 });
 
 server.listen(port, hostname, () => {
@@ -103,8 +80,8 @@ server.listen(port, hostname, () => {
 });
 
 
-function getRoot(req, res) {
-    console.log(`Getting root for req: ${req}`);
+function getRoot(req: http.IncomingMessage, res: http.ServerResponse) {
+    console.log(`Getting root for req: ${req.method} ${req.url}`);
     res.statusCode = 200;
     res.setHeader('Content-Type', 'text/html');
     // fs.createReadStream(__dirname + '/index.html').pipe(res);
@@ -147,8 +124,8 @@ function getRoot(req, res) {
     // )
 }
 
-function getHostname(req, res) {
-    console.log(`Getting hostname for req: ${req}`);
+function getHostname(req: http.IncomingMessage, res: http.ServerResponse) {
+    console.log(`Getting hostname for req: ${req.method} ${req.url}`);
     res.statusCode = 200;
     // res.setHeader('Content-Type', 'text/html'); 
     // res.end('<h1 style="margin: 0; padding: 0;">' + os.hostname() + '</h1>');
@@ -156,21 +133,43 @@ function getHostname(req, res) {
     res.end(os.hostname());
 }
 
-function getUtils(req, res) {
-    console.log(`Getting utils for req: ${req}`);
+function getUtilByName(req: http.IncomingMessage, res: http.ServerResponse, name: string) {
+    // if (!name) return;
+    console.log(`Getting util ${name} for req: ${req.method} ${req.url}`);
     res.statusCode = 200;
     res.setHeader('Content-Type', 'text/javascript');
-    fs.createReadStream(__dirname + '/utils.js').pipe(res);
+    fs.createReadStream(__dirname + `/utils/${name}`).pipe(res);
 }
 
-function getSocketUtils(req, res) {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'text/javascript');
-    fs.createReadStream(__dirname + '/utils-socket.js').pipe(res);
+function getUtils(req: http.IncomingMessage, res: http.ServerResponse) {
+    console.log(`Getting utils for req: ${req.method} ${req.url}`);
+    const nameInUrlPattern: RegExp = /\/([a-z.\-]+)/
+    const nameMatch: RegExpMatchArray | null = req.url!.match(nameInUrlPattern)
+    const name: string | undefined = nameMatch ? nameMatch[1] : '';
+    if (!name) return;
+    console.log(`Getting util file: ${name}`);
+    // res.statusCode = 200;
+    // res.setHeader('Content-Type', 'text/javascript');
+    // fs.createReadStream(__dirname + '/utils/utils.js').pipe(res);
+    getUtilByName(req, res, name);
 }
 
-function getNotFound(req, res) {
-    console.log(`Path not found for req: ${req}`);
+function getSocketUtils(req: http.IncomingMessage, res: http.ServerResponse) {
+    console.log(`Getting socket utils for req: ${req.method} ${req.url}`);
+    const nameInUrlPattern: RegExp = /\/([a-z.\-]+)/
+    const nameMatch: RegExpMatchArray | null = req.url!.match(nameInUrlPattern)
+    const name: string | undefined = nameMatch ? nameMatch[1] : '';
+    if (!name) return;
+    console.log(`Getting socket util file: ${name}`);
+    // res.statusCode = 200;
+    // res.setHeader('Content-Type', 'text/javascript');
+    // fs.createReadStream(__dirname + '/utils/utils-socket.js').pipe(res);
+    getUtilByName(req, res, name);
+}
+
+function getNotFound(req: http.IncomingMessage, res: http.ServerResponse) {
+    console.log(`Path not found for req: ${req.method} ${req.url}`);
+    console.debug(`${req.statusCode} ${req.statusMessage}`);
     res.statusCode = 404;
     res.setHeader('Content-Type', 'text/html');
     // fs.createReadStream(__dirname + '/index.html').pipe(res);

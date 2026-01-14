@@ -32,7 +32,7 @@ wss.on('connection', function (ws) {
     });
 
     ws.on('message', function (message) {
-        console.log("***MESSAGE");
+        console.log("***MESSAGE: %s", message);
         if (message.type === 'utf8') {
             console.log("Received Message: " + message.utf8Data);
 

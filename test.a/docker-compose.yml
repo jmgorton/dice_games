@@ -1,11 +1,11 @@
 # version: '3'
 services: 
   app:
-    image: node:latest
-    volumes: 
-      - ./app:/opt/app
-    command: node /opt/app/app.js
-    # build: ./app # use Dockerfile
+    # image: node:latest
+    # volumes: 
+    #   - ./app:/opt/app
+    # command: node /opt/app/app.js
+    build: ./app # use Dockerfile
   websock:
     image: node:latest
     volumes:
