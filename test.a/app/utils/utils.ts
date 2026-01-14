@@ -37,12 +37,29 @@ export function connectPyWSS() {
 
     socket.addEventListener('open', function (event) {
         console.log('Connected to server');
-        socket.send('Hello Server!');
+        // socket.send('Hello Server!');
+
+        // ****** Add me to user list *******
+        const nameEl = document.getElementById("namePy");
+        if (!nameEl) return;
+        const name = (nameEl as HTMLInputElement).value;
+        socket.send(`OPEN::${name}`);
     });
 
     socket.addEventListener('message', function (event) {
         console.log('Message from server: ', event.data);
         // socket.close(); // Close connection after receiving one message
+
+        const [msgType, msgContent] = event.data.split('::');
+        if (msgType === "USERS") {
+            const userlistBoxEl = document.getElementById("userlistbox");
+            if (!userlistBoxEl) return;
+            const userlist: string[] = msgContent.split(';');
+            const newUserListHTMLItems: string[] = userlist.map((user, index) => {
+                return (`<li key=${index}>${user}</li>`)
+            })
+            userlistBoxEl.innerHTML = `<ul>${newUserListHTMLItems.join('')}</ul>`;
+        }
     });
 
     socket.addEventListener('close', function (event) {

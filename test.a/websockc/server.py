@@ -6,6 +6,8 @@ import logging
 import queue
 from logging.handlers import QueueHandler, QueueListener
 
+from typing import List
+
 # logging.basicConfig(level=logging.INFO)
 # logger = logging.getLogger(__name__)
 # logger.info("WebSocket server started")
@@ -22,6 +24,11 @@ logger = logging.getLogger("pywss")
 logger.setLevel(logging.INFO)
 logger.addHandler(QueueHandler(q))
 
+userlist: List[str] = []
+
+def addUserToUserlist(user: str):
+    userlist.append(user)
+
 # This function is the handler for each client connection
 async def echo_handler(websocket):
 
@@ -36,8 +43,16 @@ async def echo_handler(websocket):
         # Loop indefinitely to receive messages from the client
         async for message in websocket:
             logger.info(f"Received message: {message}")
-            # Send the received message back to the client
-            await websocket.send(f"Server echoed: {message}")
+
+            [messageType, messageContent] = message.split("::")
+            if (messageType == "OPEN"):
+                addUserToUserlist(messageContent)
+                await websocket.send(f"USERS::{';'.join(userlist)}")
+                
+
+            # # Send the received message back to the client
+            else:
+                await websocket.send(f"Server echoed: {message}")
     except websockets.exceptions.ConnectionClosed as e:
         logger.info(f"Connection closed: {e}")
     finally:
