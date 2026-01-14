@@ -33,7 +33,7 @@ const server = http.createServer((req, res) => {
     } else {
         res.statusCode = 404;
         res.setHeader('Content-Type', 'text/html');
-        res.end('<h1>hi from ' + os.hostname() + '</h1>\n' + '<h3>the page you requested was not found... bummer!</h3>'
+        res.end('<h1>hi from ' + os.hostname() + '\s websock route not found page!</h1>\n' + '<h3>the page you requested was not found... bummer!</h3>'
         + '<p>please go back to the <a href="http://localhost:1313">homepage</a></p>');
     }
 });

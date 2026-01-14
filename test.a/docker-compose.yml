@@ -5,6 +5,7 @@ services:
     volumes: 
       - ./app:/opt/app
     command: node /opt/app/app.js
+    # build: ./app # use Dockerfile
   websock:
     image: node:latest
     volumes:
