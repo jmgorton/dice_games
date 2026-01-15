@@ -4,82 +4,31 @@
   <head>
     <title>WebSocket Demo</title>
     <meta charset="utf-8" />
-    <!-- <script type="text/javascript" src="utils.js"></script> -->
+    <!-- moving from CommonJS to ES modules -->
+    <!-- type="text/javascript" for CommonJS, type="module" for ES modules -->
      <script type="module" src="utils.js"></script>
-     <!-- moving from CommonJS to ES modules -->
   </head>
   <body>
-  <!-- <body onload="document.getElementById('hostname').innerHTML='something'"> -->
-    <!-- <script type="text/javascript">
-      const os = require('os') 
-      // document.addEventListener("load", ) 
-      document.getElementById("hostname").innerHTML = os.hostname(); 
-    </script> -->
     <!-- iframe: margin: 0; padding: 0; -->
     <!-- <h1>hi from <a id="hostname"><iframe id="testFrame" src="/hostname" style="border: none; display: block;"></iframe></a></h1> -->
-    <h1>hi from <span id="hostname">unknown host</span></h1>
-    <a href="http://localhost:1313/chat">Link to chat (websock)</a>
-    <a href="http://localhost:1313/test">Link to test (websockb)</a>
-    <a href="http://localhost:1313/pywss">Link to Python WSS (websockc)</a>
-    <p>
-      Enter a username:
-      <input id="namePy" type="text" maxlength="12" placeholder="Your name" />
-      <input type="button" name="login" id="pywss-login" value="Log in to Py WSS (websockc)" /> 
-      <!-- onclick="connectPyWSS()" -->
-    </p>
-    <p>
-      Enter a username:
-      <input id="name-ws" type="text" maxlength="12" placeholder="Your name" />
-      <input type="button" name="login" id="test-ws-login" value="Log in to websock" /> 
-      <!-- onclick="connect()" -->
-    </p>
-    <p>
-      Enter a username:
-      <input id="name" type="text" maxlength="12" placeholder="Your name" />
-      <input type="button" name="login" id="test-wsb-login" value="Log in to test (websockb)" /> 
-      <!-- onclick="connect()" -->
-    </p>
-    <table style="border: 0; width: 100%;">
-    <!-- border="0" width="100%" -->
-      <tr height="100%">
-        <!-- <td width="120px" align="top" border="1" height="100%"> -->
-          <td style="width: 120px; align-self: top; border: 1px; height: 100%;" >
-          <div
-            id="userlistbox"
-            style="border: 1px solid black; width: 100%; height: 100px;"
-          ></div>
-        </td>
-        <td>
-          <iframe width="100%" height="100px" id="chatbox"></iframe>
-          <tr>
-            <td>&nbsp;</td>
-            <td>
-              <p>
-                Chat:
-                <input
-                  id="text"
-                  type="text"
-                  name="text"
-                  size="80"
-                  maxlength="256"
-                  placeholder="Chat with us!"
-                  autocomplete="off"
-                  onkeyup="handleKey(event)"
-                  disabled
-                />
-                <input
-                  type="button"
-                  id="send"
-                  name="send"
-                  value="Send"
-                  onclick="send()"
-                  disabled
-                />
-              </p>
-            </td>
-          </tr>
-        </td>
-      </tr>
-    </table>
+    <h1 style="text-align: center;">hi from <span id="hostname">unknown host</span></h1>
+    <!-- wrapper: justify-content: flex-start; flex-direction: row;  -->
+    <div id="wrapper" style="display: flex; width: 100%; gap: 5px; height: 60vh;">
+      <!-- nav:  align-items: start; justify-content: start; -->
+      <div id="nav" style="width: 20%;">
+        <div id="nav-buttons" ></div>
+        <div id="login-inputs" ></div>
+      </div>
+  
+      <div id="chat" style="display: flex; width: 50%; flex-direction: column; border: 1px solid black;">
+        <div id="chatbox"></div>
+        <!-- chatInput: flex-direction: row; justify-content: space-evenly;  -->
+        <div id="chatInput" style="display: flex; margin-top: auto;">
+          <input id="text" style="flex-grow: 1;" />
+          <input id="send" style="max-width: fit-content;" />
+        </div>
+      </div>
+      <div id="userlistbox" style="border: 1px solid black; width: 20%; height: 100%;"></div>
+    </div>
   </body>
 </html>

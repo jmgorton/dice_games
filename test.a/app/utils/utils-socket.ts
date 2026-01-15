@@ -1,14 +1,28 @@
 // ES Module (newer) 
 // Not CommonJS (old) 
 
-export function getSocketWithListenersByURL(url: string): WebSocket | undefined {
+export function browserSupportsWebSockets() {
+    const isSupported = Boolean("WebSocket" in window);
+    if (!isSupported) alert("WebSockets not supported by browser.");
+    return isSupported;
+}
+
+// What I consider necessary listeners: open, close, message, error
+// If not provided, use default ones 
+export function getSocketWithListenersByURL(url: string, listeners?: {}): WebSocket | undefined {
+// export function getSocketWithListenersByURL(url: string): WebSocket | undefined {
     if (!url) return undefined;
 
     const socket = new WebSocket(url);
 
+    // (method) WebSocket.addEventListener<"open">(
+    //      type: "open", 
+    //      listener: (this: WebSocket, ev: Event) => any, options?: boolean | AddEventListenerOptions | undefined): void (+1 overload)
+
     socket.addEventListener('open', function (event) {
         console.log('Connected to server');
-        socket.send('Hello Server!');
+        socket.send('`socket` says Hello Server!');
+        this.send('`this` says Hello Server!');
     });
 
     socket.addEventListener('message', function (event) {

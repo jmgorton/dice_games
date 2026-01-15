@@ -1,12 +1,14 @@
 import asyncio
 # from urllib.parse import parse_qs
 # from urllib.parse import urlparse, parse_qs
-import websockets
+import websockets # websockets uses an async send ...
+# websockets is built on asyncio 
 import logging
 import queue
 from logging.handlers import QueueHandler, QueueListener
 
 from typing import List
+from collections import defaultdict
 
 # logging.basicConfig(level=logging.INFO)
 # logger = logging.getLogger(__name__)
@@ -25,9 +27,13 @@ logger.setLevel(logging.INFO)
 logger.addHandler(QueueHandler(q))
 
 userlist: List[str] = []
+userConnections = {} # defaultdict(None) # {}
 
 def addUserToUserlist(user: str):
     userlist.append(user)
+
+def saveUserWebSocketConnection(user, ws):
+    userConnections[user] = ws
 
 # This function is the handler for each client connection
 async def echo_handler(websocket):
@@ -44,11 +50,29 @@ async def echo_handler(websocket):
         async for message in websocket:
             logger.info(f"Received message: {message}")
 
-            [messageType, messageContent] = message.split("::")
+            try:
+                [messageType, messageContent] = message.split("::")
+            except ValueError:
+                messageType = "ECHO"
+                # messageContent = message
+
             if (messageType == "OPEN"):
-                addUserToUserlist(messageContent)
-                await websocket.send(f"USERS::{';'.join(userlist)}")
-                
+                if (messageContent not in userConnections):
+                    addUserToUserlist(messageContent)
+                    saveUserWebSocketConnection(messageContent, websocket)
+                    userlistMessage = f"USERS::{';'.join(userlist)}"
+                    sendNewUserlistTasks = [userConnections[name].send(userlistMessage) for name in userlist]
+                    await asyncio.gather(*sendNewUserlistTasks)
+
+                # await websocket.send(f"USERS::{';'.join(userlist)}")
+            elif (messageType == "MESSAGE"):
+                for user, ws in userConnections.items():
+                    sentBy = "Unknown User said: "
+                    if (ws == websocket):
+                        sentBy = f"{user} said: "
+                newMessage = f"MESSAGE::{sentBy}{messageContent}"
+                sendNewMessageTasks = [userConnections[name].send(newMessage) for name in userlist]
+                await asyncio.gather(*sendNewMessageTasks)
 
             # # Send the received message back to the client
             else:
