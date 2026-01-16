@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>Lottery Simulator</title>
+        <meta charset="utf-8" />
+        <!-- test/setup.js? client-utils/setup.js? -->
+        <script type="module" src="test/setup.js" ></script>
+        <!-- <script type="module" src="test/lotto-utils.js"></script> -->
+    </head>
+    <body>
+        <h1 style="text-align: center;">hi from <span id="hostname">unknown host</span></h1>
+        <!-- div: max-width: 50%; -->
+        <div style="text-align: center; padding-inline: 25%;">
+            <p id="intro">
+                Let's assume a gambling lifetime of 60 years
+                With three drawings per week for 52 weeks a year, that ends up being 156 drawings per year, 
+                or 9,360 drawings you can ever play. From that point on, your descendants can take up where you left off.
+            </p>
+            <p id="lotto-input">
+                How many people can you convince to buy tickets for you and give you all of whatever they win? 
+                <input id="numPeople" type="number" placeholder="Huh? How many?" />
+                How many tickets per drawing will (each of) you buy? 
+                <input id="numTickets" type="number" placeholder="Huh? How many?" />
+                <input id="calculate" type="button" name="Calculate!" value="Calculate!" />
+            </p>
+            <p id="results">
+                Let's see if you win!
+            </p>
+        </div>
+    </body>
+</html>

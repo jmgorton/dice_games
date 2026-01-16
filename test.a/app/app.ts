@@ -5,6 +5,12 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+// server entrypoint for base uri
+// hosts a simple http server listening on internal port 3000
+// receives requests and returns static assets such as html/js
+// including index.html, utils.ts, and utils-socket.ts to the 
+// client, those assets are served on subsequent requests
+
 // const res = require('./res.js'); // todo rename 
 
 // __dirname is a CommonJS-specific global variable, not available in ES module scope
