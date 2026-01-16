@@ -2,11 +2,8 @@
 // not necessary when moving from CommonJS to ES modules
 // because ES modules are strict by default
 
-// import "./eventhandlers";
-// const handlers = require('./utils-socket.ts');
+
 // transpile .ts files to .js, import .js from the browser 
-// ensure utils-socket.js is present in the served folder 
-// import handlers from './utils-socket.js';
 import { 
     browserSupportsWebSockets, 
     getSocketWithListenersByURL 
@@ -18,12 +15,6 @@ import {
 
 var ws: WebSocket | undefined = undefined;
 var clientID: number = 0;
-
-// function browserSupportsWebSockets() {
-//     const isSupported = Boolean("WebSocket" in window);
-//     if (!isSupported) alert("WebSockets not supported by browser.");
-//     return isSupported;
-// }
 
 function enableChatInput() {
     const textEl: HTMLElement | null = document.getElementById("text");
@@ -370,47 +361,85 @@ document.head.appendChild(style);
 // document.body.style.justifyContent = 'center';
 
 document.addEventListener("DOMContentLoaded", () => {
-    const routes: string[] = ["/test", "/play", "/pywss"];
-    const labels: string[] = ["/test (websock) JS", "/play (websockb) Lotto Sim", "/pywss (websockc) PY"];
+    // const routes: string[] = ["/test", "/play", "/pywss"];
+    // const labels: string[] = ["/test (websock) JS", "/play (websockb) Lotto Sim", "/pywss (websockc) PY"];
+    const buttonAttrs = [
+        { href: "/test", innerText: "/test (websock) JS" },
+        { href: "/play", innerText: "/play (websockb) Lotto Sim" },
+        { href: "/pywss", innerText: "/pywss (websockc) Python" },
+    ]
     const navButtonDiv = document.getElementById("nav-buttons") as HTMLDivElement;
     navButtonDiv.style.display = "flex";
     navButtonDiv.style.flexDirection = "column";
     navButtonDiv.style.justifyContent = "center";
     for (let i = 0; i < 3; i++) {
         const navButton = document.createElement("a");
-        navButton.href = routes[i]!; // why do i have to assert not undefined??
-        navButton.innerText = labels[i]!; // is it because i might be outside the range? 
+        Object.assign(navButton, buttonAttrs[i]);
+        // navButton.href = routes[i]!; // why do i have to assert not undefined??
+        // navButton.innerText = labels[i]!; // is it because i might be outside the range? 
         navButton.classList.add("dynamic-link");
         navButtonDiv.appendChild(navButton);
     }
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-    const textInputIds: string[] = ["name-ws", "name", "namePy"];
-    const buttonInputIds: string[] = ["test-ws-login", "test-wsb-login", "pywss-login"];
-    const buttonInputLabels: string[] = ["Connect (/test websock)", "Connect (/play websockb)", "Connect (/pywss websockc"];
-    const buttonOnClickListeners = [connectWS, connectPlay, connectPyWSS];
+    const websockButtonAttrs = {
+        "textInput": {
+            id: "name-ws",
+            disabled: true,
+        },
+        "buttonInput": {
+            id: "test-ws-login",
+            value: "Connect (/test websock)",
+            onclick: connectWS,
+            disabled: true,
+        },
+    };
+    const playWsButtonAttrs = {
+        "textInput": {
+            id: "name",
+        },
+        "buttonInput": {
+            id: "test-wsb-login",
+            value: "Connect (/play websockb)",
+            onclick: connectPlay,
+        },
+    };
+    const pyWsButtonAttrs = {
+        "textInput": {
+            id: "namePy",
+        },
+        "buttonInput": {
+            id: "pywss-login",
+            value: "Connect (/pywss websockc)",
+            onclick: connectPyWSS,
+        },
+    };
+    const buttonAttrs: any[] = [websockButtonAttrs, playWsButtonAttrs, pyWsButtonAttrs];
+    const commonAttrs = {
+        "textInput": {
+            type: "text",
+            maxLength: 20,
+            placeholder: "Enter a username...",
+        },
+        "buttonInput": {
+            type: "button",
+            name: "login",
+        }
+    }
+
     const loginButtonDiv = document.getElementById("login-inputs") as HTMLDivElement;
     loginButtonDiv.style.display = "flex";
-    // loginButtonDiv.style.gap = "10px";
     loginButtonDiv.style.flexDirection = "column";
     loginButtonDiv.style.justifyContent = "center";
     loginButtonDiv.style.alignItems = "center";
     for (let i = 0; i < 3; i++) {
         const loginInput = document.createElement("p");
-        // loginInput.innerText = "Enter a username: ";
-        const textInput = document.createElement("input");
-        textInput.type = "text";
-        textInput.maxLength = 20;
-        textInput.placeholder = "Enter a username...";
-        textInput.id = textInputIds[i]!;
+        const textInput = Object.assign(document.createElement("input"), buttonAttrs[i]["textInput"]);
+        Object.assign(textInput, commonAttrs["textInput"]);
         loginInput.append(textInput); // append vs appendChild?? 
-        const buttonInput = document.createElement("input") // button? or input type=button?
-        buttonInput.type = "button";
-        buttonInput.name = "login";
-        buttonInput.id = buttonInputIds[i]!;
-        buttonInput.value = buttonInputLabels[i]!; // value works with "input" el, not sure what "button" equiv is 
-        buttonInput.addEventListener("click", buttonOnClickListeners[i]!);
+        const buttonInput = Object.assign(document.createElement("input"), buttonAttrs[i]["buttonInput"]); // button? or input type=button?
+        Object.assign(buttonInput, commonAttrs["buttonInput"]);
         loginInput.append(buttonInput);
         loginButtonDiv.appendChild(loginInput);
     }

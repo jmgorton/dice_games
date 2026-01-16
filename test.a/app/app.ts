@@ -144,32 +144,27 @@ function getUtilByName(req: http.IncomingMessage, res: http.ServerResponse, name
     console.log(`Getting util ${name} for req: ${req.method} ${req.url}`);
     res.statusCode = 200;
     res.setHeader('Content-Type', 'text/javascript');
-    fs.createReadStream(__dirname + `/utils/${name}`).pipe(res);
+    const clientUtilsDirname = "/client-utils";
+    fs.createReadStream(__dirname + `${clientUtilsDirname}/${name}`).pipe(res);
 }
 
 function getUtils(req: http.IncomingMessage, res: http.ServerResponse) {
     console.log(`Getting utils for req: ${req.method} ${req.url}`);
-    const nameInUrlPattern: RegExp = /\/([a-z.\-]+)/
+    const nameInUrlPattern: RegExp = /\/([a-zA-Z.\-]+)/
     const nameMatch: RegExpMatchArray | null = req.url!.match(nameInUrlPattern)
     const name: string | undefined = nameMatch ? nameMatch[1] : '';
     if (!name) return;
     console.log(`Getting util file: ${name}`);
-    // res.statusCode = 200;
-    // res.setHeader('Content-Type', 'text/javascript');
-    // fs.createReadStream(__dirname + '/utils/utils.js').pipe(res);
     getUtilByName(req, res, name);
 }
 
 function getSocketUtils(req: http.IncomingMessage, res: http.ServerResponse) {
     console.log(`Getting socket utils for req: ${req.method} ${req.url}`);
-    const nameInUrlPattern: RegExp = /\/([a-z.\-]+)/
+    const nameInUrlPattern: RegExp = /\/([a-zA-Z.\-]+)/
     const nameMatch: RegExpMatchArray | null = req.url!.match(nameInUrlPattern)
     const name: string | undefined = nameMatch ? nameMatch[1] : '';
     if (!name) return;
     console.log(`Getting socket util file: ${name}`);
-    // res.statusCode = 200;
-    // res.setHeader('Content-Type', 'text/javascript');
-    // fs.createReadStream(__dirname + '/utils/utils-socket.js').pipe(res);
     getUtilByName(req, res, name);
 }
 

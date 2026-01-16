@@ -5,6 +5,7 @@
 import http from 'http';
 import os from 'os';
 import fs from 'fs';
+// import { WebSocketServer as websocket } from 'ws';
 
 // const websocket = require('ws');
 
@@ -20,16 +21,6 @@ const __dirname = path.dirname(__filename);
 
 const hostname = '0.0.0.0';
 const port = 6502;
-
-// const wsserver = new websocket.Server({ port: port });
-
-// wsserver.on('connection', ws => {
-//     ws.on('message', message => {
-//         console.log(`Received message: ${message}`);
-//     });
-
-//     ws.send('Hello from the websocket server...');
-// });
 
 
 const server = http.createServer((req, res) => {
@@ -58,3 +49,13 @@ const server = http.createServer((req, res) => {
 server.listen(port, hostname, () => {
     console.log(`Simple HTTP server running at http://${hostname}:${port}/ :)`);
 });
+
+// const wsserver = new websocket.Server({ server: server });
+
+// wsserver.on('connection', ws => {
+//     ws.on('message', message => {
+//         console.log(`Received message: ${message}`);
+//     });
+
+//     ws.send('Hello from the websocket server...');
+// });

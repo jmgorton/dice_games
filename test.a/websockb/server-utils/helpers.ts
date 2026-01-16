@@ -2,7 +2,7 @@
 
 export var connectionArray: any[] = []; // TODO remove, use wss.clients and if (client.readyState === WebSocket.OPEN)
 // See: https://www.npmjs.com/package/ws # Server broadcast 
-var nextID = Date.now();
+// var nextID = Date.now();
 
 export function originIsAllowed(origin: any) {
     // This is where you put code to ensure the connection should
