@@ -4,7 +4,8 @@ import { playUntilJackpot } from "./lotto-utils.js";
 document.addEventListener("DOMContentLoaded", async () => {
     const hostnameEl = document.getElementById("hostname")
     if (hostnameEl) {
-        const hostnameResponse = await fetch('/test/hostname'); // // http://localhost:1313/test/hostname 
+        // window.location.origin
+        const hostnameResponse = await fetch(`/play/hostname`); // // http://localhost:1313/play/hostname 
         hostnameEl.innerText = await hostnameResponse.text();
     }
 });

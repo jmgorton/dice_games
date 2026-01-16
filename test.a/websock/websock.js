@@ -43,18 +43,18 @@ const server = http.createServer((req, res) => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'text/html');
         fs.createReadStream(__dirname + '/index.html').pipe(res);
-    } else if (/^\/chat$/.test(req.url)) {
+    } else if (/^\/test$/.test(req.url)) {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'text/html');
         fs.createReadStream(__dirname + '/index.html').pipe(res);
     } else {
         res.statusCode = 404;
         res.setHeader('Content-Type', 'text/html');
-        res.end('<h1>hi from ' + os.hostname() + '\s websock route not found page!</h1>\n' + '<h3>the page you requested was not found... bummer!</h3>'
+        res.end('<h1>hi from ' + os.hostname() + '\s http route not found page!</h1>\n' + '<h3>the page you requested was not found... bummer!</h3>'
         + '<p>please go back to the <a href="http://localhost:1313">homepage</a></p>');
     }
 });
 
 server.listen(port, hostname, () => {
-    console.log(`Websock server running at http://${hostname}:${port}/ :)`);
+    console.log(`Simple HTTP server running at http://${hostname}:${port}/ :)`);
 });

@@ -7,7 +7,7 @@ services:
     volumes:
       - ./websock:/opt/app
     command: node /opt/app/websock.js
-  test:
+  play:
     build: ./websockb
   pywss:
     build: ./websockc
@@ -20,4 +20,4 @@ services:
     depends_on:
       - app
       - websock
-      - test
+      - play

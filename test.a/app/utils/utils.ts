@@ -32,6 +32,27 @@ function enableChatInput() {
     if (sendEl) (sendEl as HTMLButtonElement).disabled = false;
 }
 
+function updateUserlistBox(users: string) {
+    const userlistBoxEl = document.getElementById("userlistbox");
+    if (!userlistBoxEl) return;
+    const userlist: string[] = users.split(';');
+    const newUserListHTMLItems: string[] = userlist.map((user, index) => {
+        return (`<li key=${index}>${user}</li>`)
+    })
+    userlistBoxEl.innerHTML = `<ul>${newUserListHTMLItems.join('')}</ul>`;
+}
+
+function addChatMessageToChatBox(message: string) {
+    const chatboxEl = document.getElementById("chatbox");
+    if (!chatboxEl) return;
+    const newMsgDiv = document.createElement("div");
+    newMsgDiv.style.borderRadius = "12px";
+    newMsgDiv.style.backgroundColor = "blue";
+    newMsgDiv.style.maxWidth = "fit-content";
+    newMsgDiv.innerText = message;
+    chatboxEl.appendChild(newMsgDiv);
+}
+
 export function connectPyWSS() {
     if (!browserSupportsWebSockets()) return;
 
@@ -63,22 +84,9 @@ export function connectPyWSS() {
 
         const [msgType, msgContent] = event.data.split('::');
         if (msgType === "USERS") {
-            const userlistBoxEl = document.getElementById("userlistbox");
-            if (!userlistBoxEl) return;
-            const userlist: string[] = msgContent.split(';');
-            const newUserListHTMLItems: string[] = userlist.map((user, index) => {
-                return (`<li key=${index}>${user}</li>`)
-            })
-            userlistBoxEl.innerHTML = `<ul>${newUserListHTMLItems.join('')}</ul>`;
+            updateUserlistBox(msgContent);
         } else if (msgType === "MESSAGE") {
-            const chatboxEl = document.getElementById("chatbox");
-            if (!chatboxEl) return;
-            const newMsgDiv = document.createElement("div");
-            newMsgDiv.style.borderRadius = "12px";
-            newMsgDiv.style.backgroundColor = "blue";
-            newMsgDiv.style.maxWidth = "fit-content";
-            newMsgDiv.innerText = msgContent;
-            chatboxEl.appendChild(newMsgDiv);
+            addChatMessageToChatBox(msgContent);
         }
     });
 
@@ -99,12 +107,12 @@ export function connectWS() {
 
     // Let us open a web socket
     // var ws = new WebSocket("ws://localhost:1313/test");
-    // ws = new WebSocket("ws://localhost:1313/chat", "json"); // chat = websock (JS) // protocols was json??
-    // ws = new WebSocket("ws://localhost:1313/chat");
+    // ws = new WebSocket("ws://localhost:1313/test", "json"); // test = websock (JS) // protocols was json??
+    // ws = new WebSocket("ws://localhost:1313/test");
     const loc = window.location;
     const protocol = loc.protocol === "https:" ? "wss:" : "ws:";
     const host = loc.host; // ensure the browser connects to the same port nginx is listening on 
-    const websockURL = `${protocol}//${host}/chat`; // chat = websock (JS) 
+    const websockURL = `${protocol}//${host}/test`; // test = websock (JS) 
 
     ws = new WebSocket(websockURL);
 
@@ -179,12 +187,12 @@ export function connectWS() {
     };
 }
 
-export function connect() {
+export function connectPlay() {
     if (!browserSupportsWebSockets()) return;
 
     // Let us open a web socket
-    // var ws = new WebSocket("ws://localhost:1313/test");
-    ws = new WebSocket("ws://localhost:1313/test", "json"); // test = websockb (JS) 
+    // var ws = new WebSocket("ws://localhost:1313/play");
+    ws = new WebSocket("ws://localhost:1313/play", "json"); // test = websockb (JS) 
 
     ws.onopen = function () {
         if (!ws || !document) return; // ??? 
@@ -301,7 +309,7 @@ function handleKey(evt: any) {
 
 // type="module" in index.html makes this an ES module 
 // top-level functions are module-scoped, not globals
-// onclick="connect()" (or connectPyWSS()) run in the page global scope (window)
+// onclick="connectPlay()" (or connectPyWSS()) run in the page global scope (window)
 // and can't see the module-scoped names
 
 // // approach 1: expose module functions onto global window scope
@@ -316,7 +324,7 @@ function handleKey(evt: any) {
 //     if (jswsLogin) jswsLogin.addEventListener("click", connectWS);
 //     else console.log("JS WS Login Element not found.")
 //     const jswsbLogin = document.getElementById("test-wsb-login")
-//     if (jswsbLogin) jswsbLogin.addEventListener("click", connect);
+//     if (jswsbLogin) jswsbLogin.addEventListener("click", connectPlay);
 //     else console.log("JS WSB Login Element not found.")
 // })
 
@@ -362,8 +370,8 @@ document.head.appendChild(style);
 // document.body.style.justifyContent = 'center';
 
 document.addEventListener("DOMContentLoaded", () => {
-    const routes: string[] = ["/chat", "/test", "/pywss"];
-    const labels: string[] = ["/chat (websock) Lotto Sim", "/test (websockb) JS", "/pywss (websockc) PY"];
+    const routes: string[] = ["/test", "/play", "/pywss"];
+    const labels: string[] = ["/test (websock) JS", "/play (websockb) Lotto Sim", "/pywss (websockc) PY"];
     const navButtonDiv = document.getElementById("nav-buttons") as HTMLDivElement;
     navButtonDiv.style.display = "flex";
     navButtonDiv.style.flexDirection = "column";
@@ -380,8 +388,8 @@ document.addEventListener("DOMContentLoaded", () => {
 document.addEventListener("DOMContentLoaded", () => {
     const textInputIds: string[] = ["name-ws", "name", "namePy"];
     const buttonInputIds: string[] = ["test-ws-login", "test-wsb-login", "pywss-login"];
-    const buttonInputLabels: string[] = ["Connect (/chat websock)", "Connect (/test websockb)", "Connect (/pywss websockc"];
-    const buttonOnClickListeners = [connectWS, connect, connectPyWSS];
+    const buttonInputLabels: string[] = ["Connect (/test websock)", "Connect (/play websockb)", "Connect (/pywss websockc"];
+    const buttonOnClickListeners = [connectWS, connectPlay, connectPyWSS];
     const loginButtonDiv = document.getElementById("login-inputs") as HTMLDivElement;
     loginButtonDiv.style.display = "flex";
     // loginButtonDiv.style.gap = "10px";
