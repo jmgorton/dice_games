@@ -6,90 +6,126 @@
 // transpile .ts files to .js, import .js from the browser 
 import { 
     browserSupportsWebSockets, 
-    getSocketWithListenersByURL 
+    getSocketWithListenersByURL,
+    getWebSocketUrlByURI,
 } from "./utils-socket.js";
+
+import {
+    enableChatInput,
+    updateUserlistBox,
+    addChatMessageToChatBox,
+} from "./utils-ui.js"
 
 // import os from 'os'; // os is a Node module, not available in browser
 // this is a browser module
 
+// WebSocket.addEventListener(
+//  type: keyof WebSocketEventMap, 
+//  listener: (
+//      this: WebSocket, 
+//      ev: Event | CloseEvent | MessageEvent<any>
+//  ) => any, 
+//  options?: boolean | AddEventListenerOptions
+// ): void
+// **** OR *****
+// WebSocket.addEventListener(
+//  type: string, 
+//  listener: EventListenerOrEventListenerObject, 
+//  options?: boolean | AddEventListenerOptions
+// ): void
 
-var ws: WebSocket | undefined = undefined;
+function commonOnClose(this: WebSocket, ev: CloseEvent): any {
+    // websocket is closed.
+    console.log("From connectPlay(): `ws.onclose`: Connection was closed...");
+};
+
+// function commonOnError(this: WebSocket, err: Error): any{
+function commonOnError(this: WebSocket, ev: Event): void {
+    // console.log(`From connectPlay(): \`ws.onerror\`: WebSocket error: ${err}`);
+    console.log(`From commonOnError(): Websocket error event: ${ev}`);
+};
+
+const commonEventHandlers = { // type annotations TODO
+    'close': commonOnClose,
+    'error': commonOnError,
+}
+
+// const pyOnOpen: EventListenerOrEventListenerObject = (caller: WebSocket, ev: Event) => { 
+function pyOnOpen (this: WebSocket, event: Event) {
+// const pyOnOpen = function (self: WebSocket, event: Event): any {
+    console.log('Connected to server');
+    // socket.send('Hello Server!');
+
+    // ****** Add me to user list *******
+    const nameEl = document.getElementById("namePy");
+    if (!nameEl) return;
+    const name = (nameEl as HTMLInputElement).value;
+    this.send(`OPEN::${name}`); 
+    // in the context of this function, `this` should refer to WebSocket 
+    enableChatInput();
+}
+
+function pyOnMessage(this: WebSocket, event: MessageEvent<any>) { // : any 
+    console.log('Message from server: ', event.data);
+
+    const [msgType, msgContent] = event.data.split('::');
+    if (msgType === "USERS") {
+        updateUserlistBox(msgContent);
+    } else if (msgType === "MESSAGE") {
+        addChatMessageToChatBox(msgContent);
+    }
+};
+
+const pyWsEventHandlers = { // type annotations TODO
+    'open': pyOnOpen,
+    'message': pyOnMessage,
+}
+
+const ws: WebSocket[] = [];
 var clientID: number = 0;
-
-function enableChatInput() {
-    const textEl: HTMLElement | null = document.getElementById("text");
-    if (textEl) (textEl as HTMLInputElement).disabled = false;
-    const sendEl: HTMLElement | null = document.getElementById("send");
-    if (sendEl) (sendEl as HTMLButtonElement).disabled = false;
-}
-
-function updateUserlistBox(users: string) {
-    const userlistBoxEl = document.getElementById("userlistbox");
-    if (!userlistBoxEl) return;
-    const userlist: string[] = users.split(';');
-    const newUserListHTMLItems: string[] = userlist.map((user, index) => {
-        return (`<li key=${index}>${user}</li>`)
-    })
-    userlistBoxEl.innerHTML = `<ul>${newUserListHTMLItems.join('')}</ul>`;
-}
-
-function addChatMessageToChatBox(message: string) {
-    const chatboxEl = document.getElementById("chatbox");
-    if (!chatboxEl) return;
-    const newMsgDiv = document.createElement("div");
-    newMsgDiv.style.borderRadius = "12px";
-    newMsgDiv.style.backgroundColor = "blue";
-    newMsgDiv.style.maxWidth = "fit-content";
-    newMsgDiv.innerText = message;
-    chatboxEl.appendChild(newMsgDiv);
-}
 
 export function connectPyWSS() {
     if (!browserSupportsWebSockets()) return;
 
-    const loc = window.location;
-    const protocol = loc.protocol === "https:" ? "wss:" : "ws:";
-    const host = loc.host; // ensure the browser connects to the same port nginx is listening on 
-    const pywssURL = `${protocol}//${host}/pywss`; // pywss = websockc (Python) 
+    const pywssURL = getWebSocketUrlByURI("pywss");
 
-    // const socket = handlers.getSocketWithListenersByURL(pywssURL);
-    // const socket = getSocketWithListenersByURL(pywssURL); // maintain reference to socket 
-
-    const socket = new WebSocket(pywssURL);
-
-    socket.addEventListener('open', function (event) {
-        console.log('Connected to server');
-        // socket.send('Hello Server!');
-
-        // ****** Add me to user list *******
-        const nameEl = document.getElementById("namePy");
-        if (!nameEl) return;
-        const name = (nameEl as HTMLInputElement).value;
-        socket.send(`OPEN::${name}`);
-        enableChatInput();
+    // const socket = new WebSocket(pywssURL);
+    const socket = getSocketWithListenersByURL(pywssURL, {
+        ...pyWsEventHandlers,
+        ...commonEventHandlers,
     });
+    if (!socket) return;
 
-    socket.addEventListener('message', function (event) {
-        console.log('Message from server: ', event.data);
-        // socket.close(); // Close connection after receiving one message
+    // socket.addEventListener('open', function (event) {
+    //     console.log('Connected to server');
+    //     // socket.send('Hello Server!');
 
-        const [msgType, msgContent] = event.data.split('::');
-        if (msgType === "USERS") {
-            updateUserlistBox(msgContent);
-        } else if (msgType === "MESSAGE") {
-            addChatMessageToChatBox(msgContent);
-        }
-    });
+    //     // ****** Add me to user list *******
+    //     const nameEl = document.getElementById("namePy");
+    //     if (!nameEl) return;
+    //     const name = (nameEl as HTMLInputElement).value;
+    //     socket.send(`OPEN::${name}`);
+    //     enableChatInput();
+    // });
 
-    socket.addEventListener('close', function (event) {
-        console.log('Connection closed');
-    });
+    // socket.addEventListener('')
+    // socket.addEventListener('open', pyOnOpen);
 
-    socket.addEventListener('error', function (error) {
-        console.error('WebSocket Error: ', error);
-    });
+    // socket.addEventListener('message', function (event) {
+    //     console.log('Message from server: ', event.data);
+    //     // socket.close(); // Close connection after receiving one message
 
-    ws = socket;
+    //     const [msgType, msgContent] = event.data.split('::');
+    //     if (msgType === "USERS") {
+    //         updateUserlistBox(msgContent);
+    //     } else if (msgType === "MESSAGE") {
+    //         addChatMessageToChatBox(msgContent);
+    //     }
+    // });
+    // socket.addEventListener('message', pyOnMessage);
+
+    // ws = socket;
+    ws.push(socket);
 
 }
 
@@ -105,17 +141,17 @@ export function connectWS() {
     const host = loc.host; // ensure the browser connects to the same port nginx is listening on 
     const websockURL = `${protocol}//${host}/test`; // test = websock (JS) 
 
-    ws = new WebSocket(websockURL);
+    const socket = new WebSocket(websockURL);
 
-    ws.onopen = function () {
-        if (!ws || !document) return; // ??? 
+    socket.onopen = function () {
+        // if (!ws || !document) return; // ??? 
 
         // Web Socket is connected, send data using send()
-        ws.send(JSON.stringify("Connection successful!"));
+        socket.send(JSON.stringify("Connection successful!"));
         enableChatInput();
     };
 
-    ws.onmessage = function (evt) {
+    socket.onmessage = function (evt) {
         // var msg = evt.data;
         // alert('Message is received... "' + msg + '"');
 
@@ -168,92 +204,159 @@ export function connectWS() {
         }
     };
 
-    ws.onclose = function () {
+    socket.onclose = function () {
         // websocket is closed.
         console.log("Connection was closed...");
     };
 
-    ws.onerror = function (err) {
+    socket.onerror = function (err) {
         console.log(`WebSocket error: ${err}`);
     };
+
+    ws.push(socket);
+}
+
+function jsOnOpen (this: WebSocket, event: Event) {
+    // if (!ws || !document) return; // ??? 
+
+    // Web Socket is connected, send data using send()
+    this.send(JSON.stringify("Connection successful!"));
+    enableChatInput();
+}
+
+function jsOnMessage(this: WebSocket, evt: MessageEvent<any>) {
+    // var msg = evt.data;
+    // alert('Message is received... "' + msg + '"');
+
+    var text = "";
+    console.log(evt.data);
+    var msg = JSON.parse(evt.data);
+    console.log("Message received: %s", msg);
+    // console.dir(msg);
+    var time = new Date(msg.date);
+    var timeStr = time.toLocaleTimeString();
+
+    switch (msg.type) {
+        case "id":
+            clientID = msg.id;
+            setUsername();
+            break;
+        case "username":
+            text = "<b>User <em>" + msg.name + "</em> signed in at " + timeStr + "</b><br>";
+            break;
+        case "message":
+            text = "(" + timeStr + ") <b>" + msg.name + "</b>: " + msg.text + "<br>";
+            break;
+        case "rejectusername":
+            text = "<b>Your username has been set to <em>" + msg.name + "</em> because the name you chose is in use.</b><br>";
+            break;
+        case "userlist":
+            var ul = "";
+            var i;
+
+            for (i = 0; i < msg.users.length; i++) {
+                ul += msg.users[i] + "<br>";
+            }
+            const userlistEl = document.getElementById("userlistbox");
+            if (userlistEl) userlistEl.innerHTML = ul;
+            break;
+    }
+
+    if (text.length) {
+        const chatboxEl = document.getElementById("chatbox");
+        if (!chatboxEl) return;
+        var f = (chatboxEl as HTMLIFrameElement).contentDocument; // TODO no longer using iframes... or should i? 
+        if (!f) return;
+        f.write(text); // TODO deprecated, replace 
+        var w = (chatboxEl as HTMLIFrameElement).contentWindow // TODO no longer using iframes... or should i? 
+        if (!w) return;
+        // w.scrollByPages(1); // non-standard, not included in TS Window interface
+        // use scrollBy() instead
+        w.scrollBy(0, window.innerHeight) // scroll up one "page" (approx) 
+        // w.scrollBy(0, -window.innerHeight) // scroll down
+    }
+};
+
+const jsWsEventHandlers = { // type annotations TODO
+    'open': jsOnOpen,
+    'message': jsOnMessage,
 }
 
 export function connectPlay() {
     if (!browserSupportsWebSockets()) return;
 
-    // Let us open a web socket
+    const playWSUrl = getWebSocketUrlByURI("play");
     // var ws = new WebSocket("ws://localhost:1313/play");
-    ws = new WebSocket("ws://localhost:1313/play", "json"); // test = websockb (JS) 
+    // ws = new WebSocket(playWSUrl, "json"); // test = websockb (JS) 
+    const socket = getSocketWithListenersByURL(playWSUrl, {
+        ...jsWsEventHandlers,
+        ...commonEventHandlers,
+    });
+    if (!socket) return;
 
-    ws.onopen = function () {
-        if (!ws || !document) return; // ??? 
+    // ws.onopen = function () {
+    //     if (!ws || !document) return; // ??? 
 
-        // Web Socket is connected, send data using send()
-        ws.send(JSON.stringify("Connection successful!"));
-        enableChatInput();
-    };
+    //     // Web Socket is connected, send data using send()
+    //     ws.send(JSON.stringify("Connection successful!"));
+    //     enableChatInput();
+    // };
 
-    ws.onmessage = function (evt) {
-        // var msg = evt.data;
-        // alert('Message is received... "' + msg + '"');
+    // ws.onmessage = jsOnMessage;
 
-        var text = "";
-        console.log(evt.data);
-        var msg = JSON.parse(evt.data);
-        console.log("Message received: %s", msg);
-        // console.dir(msg);
-        var time = new Date(msg.date);
-        var timeStr = time.toLocaleTimeString();
+    // ws.onmessage = function (evt) {
+    //     // var msg = evt.data;
+    //     // alert('Message is received... "' + msg + '"');
 
-        switch (msg.type) {
-            case "id":
-                clientID = msg.id;
-                setUsername();
-                break;
-            case "username":
-                text = "<b>User <em>" + msg.name + "</em> signed in at " + timeStr + "</b><br>";
-                break;
-            case "message":
-                text = "(" + timeStr + ") <b>" + msg.name + "</b>: " + msg.text + "<br>";
-                break;
-            case "rejectusername":
-                text = "<b>Your username has been set to <em>" + msg.name + "</em> because the name you chose is in use.</b><br>";
-                break;
-            case "userlist":
-                var ul = "";
-                var i;
+    //     var text = "";
+    //     console.log(evt.data);
+    //     var msg = JSON.parse(evt.data);
+    //     console.log("Message received: %s", msg);
+    //     // console.dir(msg);
+    //     var time = new Date(msg.date);
+    //     var timeStr = time.toLocaleTimeString();
 
-                for (i = 0; i < msg.users.length; i++) {
-                    ul += msg.users[i] + "<br>";
-                }
-                const userlistEl = document.getElementById("userlistbox");
-                if (userlistEl) userlistEl.innerHTML = ul;
-                break;
-        }
+    //     switch (msg.type) {
+    //         case "id":
+    //             clientID = msg.id;
+    //             setUsername();
+    //             break;
+    //         case "username":
+    //             text = "<b>User <em>" + msg.name + "</em> signed in at " + timeStr + "</b><br>";
+    //             break;
+    //         case "message":
+    //             text = "(" + timeStr + ") <b>" + msg.name + "</b>: " + msg.text + "<br>";
+    //             break;
+    //         case "rejectusername":
+    //             text = "<b>Your username has been set to <em>" + msg.name + "</em> because the name you chose is in use.</b><br>";
+    //             break;
+    //         case "userlist":
+    //             var ul = "";
+    //             var i;
 
-        if (text.length) {
-            const chatboxEl = document.getElementById("chatbox");
-            if (!chatboxEl) return;
-            var f = (chatboxEl as HTMLIFrameElement).contentDocument; // TODO no longer using iframes... or should i? 
-            if (!f) return;
-            f.write(text); // TODO deprecated, replace 
-            var w = (chatboxEl as HTMLIFrameElement).contentWindow // TODO no longer using iframes... or should i? 
-            if (!w) return;
-            // w.scrollByPages(1); // non-standard, not included in TS Window interface
-            // use scrollBy() instead
-            w.scrollBy(0, window.innerHeight) // scroll up one "page" (approx) 
-            // w.scrollBy(0, -window.innerHeight) // scroll down
-        }
-    };
+    //             for (i = 0; i < msg.users.length; i++) {
+    //                 ul += msg.users[i] + "<br>";
+    //             }
+    //             const userlistEl = document.getElementById("userlistbox");
+    //             if (userlistEl) userlistEl.innerHTML = ul;
+    //             break;
+    //     }
 
-    ws.onclose = function () {
-        // websocket is closed.
-        console.log("Connection was closed...");
-    };
+    //     if (text.length) {
+    //         const chatboxEl = document.getElementById("chatbox");
+    //         if (!chatboxEl) return;
+    //         var f = (chatboxEl as HTMLIFrameElement).contentDocument; // TODO no longer using iframes... or should i? 
+    //         if (!f) return;
+    //         f.write(text); // TODO deprecated, replace 
+    //         var w = (chatboxEl as HTMLIFrameElement).contentWindow // TODO no longer using iframes... or should i? 
+    //         if (!w) return;
+    //         // w.scrollByPages(1); // non-standard, not included in TS Window interface
+    //         // use scrollBy() instead
+    //         w.scrollBy(0, window.innerHeight) // scroll up one "page" (approx) 
+    //         // w.scrollBy(0, -window.innerHeight) // scroll down
+    //     }
+    // };
 
-    ws.onerror = function (err) {
-        console.log(`WebSocket error: ${err}`);
-    };
 }
 
 function setUsername() {
@@ -266,7 +369,10 @@ function setUsername() {
         id: clientID,
         type: "username"
     };
-    ws.send(JSON.stringify(msg));
+    // ws.send(JSON.stringify(msg));
+    for (const conn of ws) {
+        conn.send(JSON.stringify(msg));
+    }
 }
 
 function send() {
@@ -285,7 +391,10 @@ function send() {
     console.log("***SEND: " + JSON.stringify(msg));
 
     // ws.send(`MESSAGE::${JSON.stringify(msg)}`);
-    ws.send(`MESSAGE::${textEl.value}`);
+    // ws.send(`MESSAGE::${textEl.value}`);
+    for (const conn of ws) {
+        conn.send(`MESSAGE::${textEl.value}`);
+    }
     textEl.value = "";
 }
 

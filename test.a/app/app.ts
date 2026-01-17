@@ -46,6 +46,11 @@ let routes = [
     },
     {
         method: 'GET',
+        url: /^\/utils-ui\.js/, // remove EOL char, return file based on req path
+        run: getUIUtils,
+    },
+    {
+        method: 'GET',
         url: /^\.\*$/,
         run: getNotFound,
     }
@@ -165,6 +170,16 @@ function getSocketUtils(req: http.IncomingMessage, res: http.ServerResponse) {
     const name: string | undefined = nameMatch ? nameMatch[1] : '';
     if (!name) return;
     console.log(`Getting socket util file: ${name}`);
+    getUtilByName(req, res, name);
+}
+
+function getUIUtils(req: http.IncomingMessage, res: http.ServerResponse) {
+    console.log(`Getting ui utils for req: ${req.method} ${req.url}`);
+    const nameInUrlPattern: RegExp = /\/([a-zA-Z.\-]+)/
+    const nameMatch: RegExpMatchArray | null = req.url!.match(nameInUrlPattern)
+    const name: string | undefined = nameMatch ? nameMatch[1] : '';
+    if (!name) return;
+    console.log(`Getting ui util file: ${name}`);
     getUtilByName(req, res, name);
 }
 
