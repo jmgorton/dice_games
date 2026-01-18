@@ -1,7 +1,15 @@
 # version: '3'
 services: 
+  # shared:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.shared
   app:
-    build: ./app # use Dockerfile
+    build: # ./app 
+      context: .
+      dockerfile: Dockerfile.app # ./app/Dockerfile
+    # depends_on:
+    #   - shared
   websock:
     image: node:latest
     volumes:

@@ -5,12 +5,14 @@ FROM node:latest AS base
 WORKDIR /usr/src/app
 
 # Copy package.json and install dependencies (including devDependencies like 'typescript')
-COPY package*.json ./
+COPY app/package*.json ./
 RUN npm install
 # COPY ./ /opt/app
 
 # Copy all source files
-COPY . .
+COPY shared ../shared
+# COPY --from=shared /shared ../shared
+COPY app .
 
 # Run the TypeScript compiler (tsc) to transpile TS to JS
 # The output (e.g., in a 'dist' or 'build' directory) will be in the build stage filesystem
@@ -27,13 +29,13 @@ WORKDIR /usr/src/app
 
 # RUN npx tsc *.ts
 # Only install production dependencies
-COPY package*.json ./
+COPY app/package*.json ./
 RUN npm install --production
 
 # Copy only the *transpiled JavaScript files* from the 'build' stage (base)
 # The 'dist' directory is commonly used as the output directory
 COPY --from=base /usr/src/app/dist ./
-COPY ./index.html ./
+COPY app/index.html ./
 
 # VOLUME [ "/app" ]
 

@@ -1,16 +1,8 @@
-import {
-    connectPyWSS,
-    connectWS,
-    connectPlay,
-    send,
-    handleKey
-} from './utils.js'
-
+import { connectPyWSS, connectWS, connectPlay, send, handleKey } from './utils.js';
 // type="module" in index.html makes this an ES module 
 // top-level functions are module-scoped, not globals
 // onclick="connectPlay()" (or connectPyWSS()) run in the page global scope (window)
 // and can't see the module-scoped names
-
 // // approach 1: expose module functions onto global window scope
 // // window.connectPyWSS = connectPyWSS;
 // // approach 2 (better): remove inline onclick attribute, attach event listener here
@@ -26,10 +18,9 @@ import {
 //     if (jswsbLogin) jswsbLogin.addEventListener("click", connectPlay);
 //     else console.log("JS WSB Login Element not found.")
 // })
-
 document.addEventListener("DOMContentLoaded", async () => {
     if (document) {
-        const hostnameEl = document.getElementById("hostname")
+        const hostnameEl = document.getElementById("hostname");
         if (hostnameEl) {
             const hostnameResponse = await fetch('http://localhost:1313/hostname');
             hostnameEl.innerText = await hostnameResponse.text();
@@ -39,15 +30,14 @@ document.addEventListener("DOMContentLoaded", async () => {
             //     res.body.pipeTo(hostnameEl.innerText as unknown as WritableStream);
             // })
         }
-    } else {
+    }
+    else {
         console.log("Document not found.");
     }
-})
-
+});
 // dark mode 
 document.body.style.backgroundColor = '#333';
 document.body.style.color = 'white';
-
 const style = document.createElement('style');
 style.innerHTML = `
     .dynamic-link:link { color: cyan; }
@@ -61,13 +51,11 @@ document.head.appendChild(style);
 // for (const element of elements) {
 //     element.classList.add('dynamic-link');
 // }
-
 // generic styling 
 // document.body.style.display = 'flex';
 // document.body.style.flexDirection = 'column';
 // document.body.style.alignContent = 'center';
 // document.body.style.justifyContent = 'center';
-
 document.addEventListener("DOMContentLoaded", () => {
     // const routes: string[] = ["/test", "/play", "/pywss"];
     // const labels: string[] = ["/test (websock) JS", "/play (websockb) Lotto Sim", "/pywss (websockc) PY"];
@@ -75,8 +63,8 @@ document.addEventListener("DOMContentLoaded", () => {
         { href: "/test", innerText: "/test (websock) JS" },
         { href: "/play", innerText: "/play (websockb) Lotto Sim" },
         { href: "/pywss", innerText: "/pywss (websockc) Python" },
-    ]
-    const navButtonDiv = document.getElementById("nav-buttons") as HTMLDivElement;
+    ];
+    const navButtonDiv = document.getElementById("nav-buttons");
     navButtonDiv.style.display = "flex";
     navButtonDiv.style.flexDirection = "column";
     navButtonDiv.style.justifyContent = "center";
@@ -89,7 +77,6 @@ document.addEventListener("DOMContentLoaded", () => {
         navButtonDiv.appendChild(navButton);
     }
 });
-
 document.addEventListener("DOMContentLoaded", () => {
     const websockButtonAttrs = {
         "textInput": {
@@ -123,7 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
             onclick: connectPyWSS,
         },
     };
-    const buttonAttrs: any[] = [websockButtonAttrs, playWsButtonAttrs, pyWsButtonAttrs];
+    const buttonAttrs = [websockButtonAttrs, playWsButtonAttrs, pyWsButtonAttrs];
     const commonAttrs = {
         "textInput": {
             type: "text",
@@ -134,9 +121,8 @@ document.addEventListener("DOMContentLoaded", () => {
             type: "button",
             name: "login",
         }
-    }
-
-    const loginButtonDiv = document.getElementById("login-inputs") as HTMLDivElement;
+    };
+    const loginButtonDiv = document.getElementById("login-inputs");
     loginButtonDiv.style.display = "flex";
     loginButtonDiv.style.flexDirection = "column";
     loginButtonDiv.style.justifyContent = "center";
@@ -152,9 +138,8 @@ document.addEventListener("DOMContentLoaded", () => {
         loginButtonDiv.appendChild(loginInput);
     }
 });
-
 document.addEventListener("DOMContentLoaded", () => {
-    const chatInputText = document.getElementById("text") as HTMLInputElement;
+    const chatInputText = document.getElementById("text");
     chatInputText.type = "text";
     chatInputText.name = "text";
     // chatInputText.size = 80;
@@ -163,28 +148,25 @@ document.addEventListener("DOMContentLoaded", () => {
     chatInputText.autocomplete = "on";
     chatInputText.onkeyup = handleKey;
     chatInputText.disabled = true;
-    const chatInputSend = document.getElementById("send") as HTMLInputElement;
+    const chatInputSend = document.getElementById("send");
     chatInputSend.type = "button";
     chatInputSend.name = "send";
     chatInputSend.value = "Send";
     chatInputSend.onclick = send;
     chatInputSend.disabled = true;
-})
-
+});
 // window.onload (older syntax)
 // window.addEventListener('load') (more modern approach)
-
 // window: the entire browser window or tab; the top-level global object 
 //      in the browser's JS environment; good for managing browser-level
 //      features, like history, location, storage, timers, etc.
 // document the HTML content displayed within that window; a property of 
 //      the window object and the root node of the DOM; good for managing
 //      web page content, structure, and style (the DOM) 
-
 // document events: onload vs. DOMContentLoaded
 //      DOMContentLoaded fires when the initial HTML doc has been loaded
 //      and parsed, and the DOM is built; does not wait for stylesheets,
 //      images, or subframes to finish loading
 //      onload (technically window.onload) fires when the entire page has
 //      finished loading, including images, CSS, and subframes; 
-
+//# sourceMappingURL=setup.js.map

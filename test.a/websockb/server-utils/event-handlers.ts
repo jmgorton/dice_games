@@ -1,6 +1,7 @@
 import http from 'http';
 // import websocket from 'ws';
 import WebSocket, { WebSocketServer } from 'ws';
+import { Stream } from 'stream';
 
 import {
     connectionArray, // TODO research how importing an array works ... can't assign, but can manipulate it seems 
@@ -10,6 +11,8 @@ import {
     // makeUserListMessage,
     sendUserListToAll,
 } from './helpers.js'
+
+import { handlerTree } from '../route-handler.js';
 
 // var connectionArray: any[] = []; // TODO remove, use wss.clients and if (client.readyState === WebSocket.OPEN)
 // See: https://www.npmjs.com/package/ws # Server broadcast 
@@ -61,13 +64,15 @@ const wssOnHeaders = (self: WebSocketServer, headers: string[], request: http.In
 
 const wssOnConnection = (ws: WebSocket, request: http.IncomingMessage) => {
     ws.on('open', (self: WebSocket) => {
-        // implicitly handled 
+        // implicitly handled server-side 
     });
 
     ws.on('redirect', (self: WebSocket, url: string, request: http.ClientRequest) => {
 
     });
 
+    // this is an event that should (maybe) be bound to the http server ... as well? or instead? 
+    // i guess both servers might do something different on this event 
     ws.on('upgrade', (self: WebSocket, request: http.IncomingMessage) => {
 
     });
@@ -324,3 +329,92 @@ export const setupWebSocketEventHandlers = (wss: WebSocketServer) => {
     wss.on('headers', wssOnHeaders);
     // wss.on('request', wssOnRequestFIXTHIS); // does this even do anything?? no
 };
+
+// ******* Creating a very simple middle-ware stack to emulate basic features from other frameworks like Express ********
+
+const logger = (request: http.IncomingMessage, response: http.ServerResponse, next: (err?: Error) => void) => {
+    console.log(`[${new Date().toISOString()}] Received ${request.method} ${request.url} from ${request.headers.origin}`);
+    next();
+}
+
+const validator = (request: http.IncomingMessage, response: http.ServerResponse, next: (err?: Error) => void) => {
+    // console.log("Handling request from " + request.headers.origin);
+    if (!request || !request.method || !request.url) return; 
+    // ping? what would this situation possibly be? 
+
+    // The origin property doesn't exist directly on Node.js's built-in http.IncomingMessage 
+    //  because it's a low-level stream representing raw HTTP data; you'll find origin information 
+    //  (like req.headers.origin or req.headers.host) within the headers object, but frameworks 
+    //  like Express or Koa enhance req (often an IncomingMessage) with convenience properties 
+    //  like .query, .body, or origin. To get the origin, access req.headers.origin (for CORS) 
+    //  or req.headers.host and parse the URL, or use a framework for easier access. 
+
+    if (!originIsAllowed(request.headers.origin)) {
+        // // request.reject();
+        // console.log("Connection from " + request.headers.origin + " rejected.");
+        // return;
+        return next(new Error(`Rejected request from ${request.headers.origin}.`));
+    }
+    return next();
+}
+
+const authenticator = (request: http.IncomingMessage, response: http.ServerResponse, next: (err?: Error) => void) => {
+    const possibleAuthHeaderIDK = ['x-auth', 'authorization', 'proxy-authenticate', 'proxy-authorization', 'www-authenticate'];
+    if (request.url === '/play/admin' && !possibleAuthHeaderIDK.some(header => header in request.headers)) {
+        // checking for at least one of those headers, idk what will happen 
+        return next(new Error('Unauthorized'));
+    }
+    return next();
+}
+
+const errorHandler = (err: Error, request: http.IncomingMessage, response: http.ServerResponse, next: (err?: Error) => void) => {
+    console.error(`Caught error: ${err.name}: ${err.message}: ${err.cause}`);
+    response.writeHead(500, 'Internal Server Error', { 'Content-Type': 'application/json' });
+    response.end(JSON.stringify({ error: err.message || 'Internal Server Error' }));
+}
+
+const middlewareStack = [logger, validator, authenticator];
+
+const httpServerOnRequest = (request: http.IncomingMessage, response: http.ServerResponse<http.IncomingMessage> & { req: http.IncomingMessage; }) => {
+    // putting basically the same logic from wssOnRequestFIXTHIS in here... 
+    // but refactoring and creating a middleware stack, loosely based on 
+    // what Gemini told me Express's arch would be like at a very basic level 
+
+    let index = 0; // the stage of the stack each request being handled is at 
+    const next = (err?: Error) => {
+        if (err) {
+            errorHandler(err, request, response, next);
+        } else if (index < middlewareStack.length) {
+            // TODO validate... Cannot invoke an object which is possibly 'undefined'. It's defined as const above?? 
+            // need to understand that error on a deeper level 
+            middlewareStack[index++]!(request, response, next); 
+        } else {
+            handlerTree.fulfillRequest(request, response);
+        }
+    }
+}
+
+const httpServerOnUpgrade = (req: http.IncomingMessage, socket: Stream.Duplex, head: NonSharedBuffer) => {
+    // socket.on('error', onSocketError);
+
+    // // This function is not defined on purpose. Implement it with your own logic.
+    // authenticate(request, function next(err, client) {
+    //     if (err || !client) {
+    //     socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+    //     socket.destroy();
+    //     return;
+    //     }
+
+    //     socket.removeListener('error', onSocketError);
+
+    //     wss.handleUpgrade(request, socket, head, function done(ws) {
+    //     wss.emit('connection', ws, request, client);
+    //     });
+    // });
+}
+
+export const setupHttpServerEventHandlers = (server: http.Server) => {
+    // http.Server.on(eventName: keyof http.ServerEventMap<typeof http.IncomingMessage, typeof http.ServerResponse>
+    server.on('request', httpServerOnRequest)
+    server.on('upgrade', httpServerOnUpgrade)
+}

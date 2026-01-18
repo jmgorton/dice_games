@@ -1,24 +1,11 @@
 // "use strict";
 // not necessary when moving from CommonJS to ES modules
 // because ES modules are strict by default
-
-
 // transpile .ts files to .js, import .js from the browser 
-import { 
-    browserSupportsWebSockets, 
-    getSocketWithListenersByURL,
-    getWebSocketUrlByURI,
-} from "./utils-socket.js";
-
-import {
-    enableChatInput,
-    updateUserlistBox,
-    addChatMessageToChatBox,
-} from "./utils-ui.js"
-
+import { browserSupportsWebSockets, getSocketWithListenersByURL, getWebSocketUrlByURI, } from "./utils-socket.js";
+import { enableChatInput, updateUserlistBox, addChatMessageToChatBox, } from "./utils-ui.js";
 // import os from 'os'; // os is a Node module, not available in browser
 // this is a browser module
-
 // WebSocket.addEventListener(
 //  type: keyof WebSocketEventMap, 
 //  listener: (
@@ -33,76 +20,68 @@ import {
 //  listener: EventListenerOrEventListenerObject, 
 //  options?: boolean | AddEventListenerOptions
 // ): void
-
-function commonOnClose(this: WebSocket, ev: CloseEvent): any {
+function commonOnClose(ev) {
     // websocket is closed.
     console.log("From connectPlay(): `ws.onclose`: Connection was closed...");
-};
-
+}
+;
 // function commonOnError(this: WebSocket, err: Error): any{
-function commonOnError(this: WebSocket, ev: Event): void {
+function commonOnError(ev) {
     // console.log(`From connectPlay(): \`ws.onerror\`: WebSocket error: ${err}`);
     console.log(`From commonOnError(): Websocket error event: ${ev}`);
-};
-
-const commonEventHandlers = { // type annotations TODO
+}
+;
+const commonEventHandlers = {
     'close': commonOnClose,
     'error': commonOnError,
-}
-
+};
 // const pyOnOpen: EventListenerOrEventListenerObject = (caller: WebSocket, ev: Event) => { 
-function pyOnOpen (this: WebSocket, event: Event) {
-// const pyOnOpen = function (self: WebSocket, event: Event): any {
+function pyOnOpen(event) {
+    // const pyOnOpen = function (self: WebSocket, event: Event): any {
     console.log('Connected to server');
     // socket.send('Hello Server!');
-
     // ****** Add me to user list *******
     const nameEl = document.getElementById("namePy");
-    if (!nameEl) return;
-    const name = (nameEl as HTMLInputElement).value;
-    this.send(`OPEN::${name}`); 
+    if (!nameEl)
+        return;
+    const name = nameEl.value;
+    this.send(`OPEN::${name}`);
     // in the context of this function, `this` should refer to WebSocket 
     enableChatInput();
 }
-
-function pyOnMessage(this: WebSocket, event: MessageEvent<any>) { // : any 
+function pyOnMessage(event) {
     console.log('Message from server: ', event.data);
-
     const [msgType, msgContent] = event.data.split('::');
     if (msgType === "USERS") {
         updateUserlistBox(msgContent);
-    } else if (msgType === "MESSAGE") {
+    }
+    else if (msgType === "MESSAGE") {
         addChatMessageToChatBox(msgContent);
     }
-};
-
-const pyWsEventHandlers = { // type annotations TODO
+}
+;
+const pyWsEventHandlers = {
     'open': pyOnOpen,
     'message': pyOnMessage,
-}
-
-const ws: WebSocket[] = [];
-var clientID: number = 0;
-
+};
+const ws = [];
+var clientID = 0;
 export function connectPyWSS() {
-    if (!browserSupportsWebSockets()) return;
-
+    if (!browserSupportsWebSockets())
+        return;
     const pywssURL = getWebSocketUrlByURI("pywss");
-
     // const socket = new WebSocket(pywssURL);
     const socket = getSocketWithListenersByURL(pywssURL, {
         ...pyWsEventHandlers,
         ...commonEventHandlers,
     });
-    if (!socket) return;
-
+    if (!socket)
+        return;
     ws.push(socket);
-
 }
-
 export function connectWS() {
-    if (!browserSupportsWebSockets()) return;
-
+    if (!browserSupportsWebSockets())
+        return;
     // Let us open a web socket
     // var ws = new WebSocket("ws://localhost:1313/test");
     // ws = new WebSocket("ws://localhost:1313/test", "json"); // test = websock (JS) // protocols was json??
@@ -111,21 +90,16 @@ export function connectWS() {
     const protocol = loc.protocol === "https:" ? "wss:" : "ws:";
     const host = loc.host; // ensure the browser connects to the same port nginx is listening on 
     const websockURL = `${protocol}//${host}/test`; // test = websock (JS) 
-
     const socket = new WebSocket(websockURL);
-
     socket.onopen = function () {
         // if (!ws || !document) return; // ??? 
-
         // Web Socket is connected, send data using send()
         socket.send(JSON.stringify("Connection successful!"));
         enableChatInput();
     };
-
     socket.onmessage = function (evt) {
         // var msg = evt.data;
         // alert('Message is received... "' + msg + '"');
-
         var text = "";
         console.log(evt.data);
         var msg = JSON.parse(evt.data);
@@ -133,7 +107,6 @@ export function connectWS() {
         console.dir(msg);
         var time = new Date(msg.date);
         var timeStr = time.toLocaleTimeString();
-
         switch (msg.type) {
             case "id":
                 clientID = msg.id;
@@ -151,54 +124,49 @@ export function connectWS() {
             case "userlist":
                 var ul = "";
                 var i;
-
                 for (i = 0; i < msg.users.length; i++) {
                     ul += msg.users[i] + "<br>";
                 }
                 const userlistEl = document.getElementById("userlistbox");
-                if (userlistEl) userlistEl.innerHTML = ul;
+                if (userlistEl)
+                    userlistEl.innerHTML = ul;
                 break;
         }
-
         if (text.length) {
             const chatboxEl = document.getElementById("chatbox");
-            if (!chatboxEl) return;
-            var f = (chatboxEl as HTMLIFrameElement).contentDocument;
-            if (!f) return;
+            if (!chatboxEl)
+                return;
+            var f = chatboxEl.contentDocument;
+            if (!f)
+                return;
             f.write(text); // TODO deprecated, replace 
-            var w = (chatboxEl as HTMLIFrameElement).contentWindow
-            if (!w) return;
+            var w = chatboxEl.contentWindow;
+            if (!w)
+                return;
             // w.scrollByPages(1); // non-standard, not included in TS Window interface
             // use scrollBy() instead
-            w.scrollBy(0, window.innerHeight) // scroll up one "page" (approx) 
+            w.scrollBy(0, window.innerHeight); // scroll up one "page" (approx) 
             // w.scrollBy(0, -window.innerHeight) // scroll down
         }
     };
-
     socket.onclose = function () {
         // websocket is closed.
         console.log("Connection was closed...");
     };
-
     socket.onerror = function (err) {
         console.log(`WebSocket error: ${err}`);
     };
-
     ws.push(socket);
 }
-
-function jsOnOpen (this: WebSocket, event: Event) {
+function jsOnOpen(event) {
     // if (!ws || !document) return; // ??? 
-
     // Web Socket is connected, send data using send()
     this.send(JSON.stringify("Connection successful!"));
     enableChatInput();
 }
-
-function jsOnMessage(this: WebSocket, evt: MessageEvent<any>) {
+function jsOnMessage(evt) {
     // var msg = evt.data;
     // alert('Message is received... "' + msg + '"');
-
     var text = "";
     console.log(evt.data);
     var msg = JSON.parse(evt.data);
@@ -206,7 +174,6 @@ function jsOnMessage(this: WebSocket, evt: MessageEvent<any>) {
     // console.dir(msg);
     var time = new Date(msg.date);
     var timeStr = time.toLocaleTimeString();
-
     switch (msg.type) {
         case "id":
             clientID = msg.id;
@@ -224,38 +191,39 @@ function jsOnMessage(this: WebSocket, evt: MessageEvent<any>) {
         case "userlist":
             var ul = "";
             var i;
-
             for (i = 0; i < msg.users.length; i++) {
                 ul += msg.users[i] + "<br>";
             }
             const userlistEl = document.getElementById("userlistbox");
-            if (userlistEl) userlistEl.innerHTML = ul;
+            if (userlistEl)
+                userlistEl.innerHTML = ul;
             break;
     }
-
     if (text.length) {
         const chatboxEl = document.getElementById("chatbox");
-        if (!chatboxEl) return;
-        var f = (chatboxEl as HTMLIFrameElement).contentDocument; // TODO no longer using iframes... or should i? 
-        if (!f) return;
+        if (!chatboxEl)
+            return;
+        var f = chatboxEl.contentDocument; // TODO no longer using iframes... or should i? 
+        if (!f)
+            return;
         f.write(text); // TODO deprecated, replace 
-        var w = (chatboxEl as HTMLIFrameElement).contentWindow // TODO no longer using iframes... or should i? 
-        if (!w) return;
+        var w = chatboxEl.contentWindow; // TODO no longer using iframes... or should i? 
+        if (!w)
+            return;
         // w.scrollByPages(1); // non-standard, not included in TS Window interface
         // use scrollBy() instead
-        w.scrollBy(0, window.innerHeight) // scroll up one "page" (approx) 
+        w.scrollBy(0, window.innerHeight); // scroll up one "page" (approx) 
         // w.scrollBy(0, -window.innerHeight) // scroll down
     }
-};
-
-const jsWsEventHandlers = { // type annotations TODO
+}
+;
+const jsWsEventHandlers = {
     'open': jsOnOpen,
     'message': jsOnMessage,
-}
-
+};
 export function connectPlay() {
-    if (!browserSupportsWebSockets()) return;
-
+    if (!browserSupportsWebSockets())
+        return;
     const playWSUrl = getWebSocketUrlByURI("play");
     // var ws = new WebSocket("ws://localhost:1313/play");
     // ws = new WebSocket(playWSUrl, "json"); // test = websockb (JS) 
@@ -263,17 +231,17 @@ export function connectPlay() {
         ...jsWsEventHandlers,
         ...commonEventHandlers,
     });
-    if (!socket) return;
-
+    if (!socket)
+        return;
     ws.push(socket);
 }
-
 function setUsername() {
     console.log("***SETUSERNAME");
     const nameEl = document.getElementById("name");
-    if (!nameEl || !ws) return;
+    if (!nameEl || !ws)
+        return;
     var msg = {
-        name: (nameEl as HTMLInputElement).value,
+        name: nameEl.value,
         date: Date.now(),
         id: clientID,
         type: "username"
@@ -283,14 +251,13 @@ function setUsername() {
         conn.send(JSON.stringify(msg));
     }
 }
-
 export function send() {
     if (!ws) {
         console.error("WebSocket connection is null. Can't send message.");
     }
-
-    const textEl: HTMLInputElement | null = document.getElementById("text") as HTMLInputElement
-    if (!textEl || !ws) return;
+    const textEl = document.getElementById("text");
+    if (!textEl || !ws)
+        return;
     var msg = {
         text: textEl.value,
         type: "message",
@@ -298,7 +265,6 @@ export function send() {
         date: Date.now()
     };
     console.log("***SEND: " + JSON.stringify(msg));
-
     // ws.send(`MESSAGE::${JSON.stringify(msg)}`);
     // ws.send(`MESSAGE::${textEl.value}`);
     for (const conn of ws) {
@@ -306,8 +272,7 @@ export function send() {
     }
     textEl.value = "";
 }
-
-export function handleKey(evt: any) {
+export function handleKey(evt) {
     if (evt.keyCode === 13 || evt.keyCode === 14) {
         const sendEl = document.getElementById("send");
         // const sendEl = evt.currentTarget ?? 
@@ -316,3 +281,4 @@ export function handleKey(evt: any) {
         }
     }
 }
+//# sourceMappingURL=utils.js.map
