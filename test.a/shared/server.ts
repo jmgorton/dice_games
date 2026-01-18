@@ -19,8 +19,11 @@ const uriBase = '/play';
 // then switches to the persistent WebSocket protocol, while 
 // regular HTTP requests are handled as normal.
 
+// any concerns about CORS here? 
 const handlerTree = new URITree({
-    route: '', // /^common/,
+    route: '/', // /^common/,
+    availableAssetsAtRoute: /^\/shared\//,
+    assetServerHandler: () => {},
 })
 
 const server = http.createServer((req, res) => {

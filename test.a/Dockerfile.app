@@ -50,10 +50,10 @@ COPY app/index.html ./
 
 # Define the command to run the final JavaScript application
 # CMD ["node", "./dist/app.js"]
-# CMD ["node", "app.js"] 
+CMD ["node", "app.js"] 
 # CMD ["npx", "tsx", "app.js"]
 # DEBUGGING CMD
-CMD ["/bin/sh", "-c", "ls -la /usr/src/app && echo 'Structure above. Press Ctrl+C to exit.' && tail -f /dev/null"]
+# CMD ["/bin/sh", "-c", "ls -la /usr/src/app && echo 'Structure above. Press Ctrl+C to exit.' && tail -f /dev/null"]
 
 # /opt/app/ ?? 
 # or just app.js if you set WORKDIR to /opt/app

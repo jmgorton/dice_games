@@ -5,7 +5,8 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { URITree } from '@shared/types.js'
+// import { URITree } from '@shared/types.js'
+import { URITree } from '../shared/dist/types.js'
 
 // server entrypoint for base uri
 // hosts a simple http server listening on internal port 3000
@@ -53,47 +54,48 @@ const routeHandler = new URITree({
     }
 });
 
-const assetServer = new URITree({
-    // route matches: {setup,utils,utils-ui,utils-socket}.<maybe-something>{js,ts}<maybe .map>
-    // route: new RegExp('')
-    route: '', // availableAssetsRegex,
-    handlerMap: {
-        GET: serveStaticAsset,
-    }
-})
+// const assetServer = new URITree({
+//     // route matches: {setup,utils,utils-ui,utils-socket}.<maybe-something>{js,ts}<maybe .map>
+//     // route: new RegExp('')
+//     route: '', // availableAssetsRegex,
+//     handlerMap: {
+//         GET: serveStaticAsset,
+//     }
+// })
 
-let routes = [
-    {
-        method: 'GET',
-        url: /^\/$/,
-        run: getRoot,
-    },
-    {
-        method: 'GET',
-        url: /^\/hostname$/,
-        run: getHostname,
-    },
-    {
-        method: 'GET',
-        url: /^\/utils\.js/, // remove EOL char, return file based on req path
-        run: getUtils,
-    },
-    {
-        method: 'GET',
-        url: /^\/utils-socket\.js/, // remove EOL char, return file based on req path
-        run: getSocketUtils,
-    },
-    {
-        method: 'GET',
-        url: /^\/utils-ui\.js/, // remove EOL char, return file based on req path
-        run: getUIUtils,
-    },
-    {
-        method: 'GET',
-        url: /^\.\*$/,
-        run: getNotFound,
-    }
-];
+
+// let routes = [
+//     {
+//         method: 'GET',
+//         url: /^\/$/,
+//         run: getRoot,
+//     },
+//     {
+//         method: 'GET',
+//         url: /^\/hostname$/,
+//         run: getHostname,
+//     },
+//     {
+//         method: 'GET',
+//         url: /^\/utils\.js/, // remove EOL char, return file based on req path
+//         run: getUtils,
+//     },
+//     {
+//         method: 'GET',
+//         url: /^\/utils-socket\.js/, // remove EOL char, return file based on req path
+//         run: getSocketUtils,
+//     },
+//     {
+//         method: 'GET',
+//         url: /^\/utils-ui\.js/, // remove EOL char, return file based on req path
+//         run: getUIUtils,
+//     },
+//     {
+//         method: 'GET',
+//         url: /^\.\*$/,
+//         run: getNotFound,
+//     }
+// ];
 
 const server = http.createServer((req, res) => {
     // function createServer<typeof http.IncomingMessage, typeof http.ServerResponse>
@@ -104,31 +106,33 @@ const server = http.createServer((req, res) => {
     // res = http.ServerResponse 
 
     // console.log(req);
-    if (!req.url || req.url === undefined) {
-        getNotFound(req, res);
-        return;
-    }
+    // if (!req.url || req.url === undefined) {
+    //     getNotFound(req, res);
+    //     return;
+    // }
 
-    console.log(`Searching for route for ${req.method} ${req.url}`);
-    let route = routes.find(route => {
-        // console.log(`Comparing to route ${route.method} ${route.url}`)
-        return route.url.test(req.url!) && route.method === req.method
-    });
-    console.log(`${route ? 'Found route' : 'No route found'} for ${req.method} ${req.url}... ${route}`)
+    // console.log(`Searching for route for ${req.method} ${req.url}`);
+    // let route = routes.find(route => {
+    //     // console.log(`Comparing to route ${route.method} ${route.url}`)
+    //     return route.url.test(req.url!) && route.method === req.method
+    // });
+    // console.log(`${route ? 'Found route' : 'No route found'} for ${req.method} ${req.url}... ${route}`)
 
-    try {
-        // try catch is pointless here, serving a 404 is not considered an application error 
-        routeHandler.handleRequest(req, res);
-        // assetServer.handleRequest(req, res);
-    } catch (err) {
-        if (route) route.run(req, res);
-        else {
-            res.statusCode = 404;
-            res.setHeader('Content-Type', 'text/html');
-            res.end('<h1>hi from ' + os.hostname() + '</h1>\n' + '<h3>the page you requested was not found... bummer!</h3>'
-            + '<p>this is the default route not found catcher. please go back to the <a href="http://localhost:1313">homepage</a>.</p>');
-        }
-    }
+    // try {
+    //     // try catch is pointless here, serving a 404 is not considered an application error 
+    //     routeHandler.handleRequest(req, res);
+    //     // assetServer.handleRequest(req, res);
+    // } catch (err) {
+    //     if (route) route.run(req, res);
+    //     else {
+    //         res.statusCode = 404;
+    //         res.setHeader('Content-Type', 'text/html');
+    //         res.end('<h1>hi from ' + os.hostname() + '</h1>\n' + '<h3>the page you requested was not found... bummer!</h3>'
+    //         + '<p>this is the default route not found catcher. please go back to the <a href="http://localhost:1313">homepage</a>.</p>');
+    //     }
+    // }
+
+    routeHandler.handleRequest(req, res);
 
 });
 
@@ -226,39 +230,41 @@ function getUtilByName(req: http.IncomingMessage, res: http.ServerResponse, name
     console.log(`Getting util ${name} for req: ${req.method} ${req.url}`);
     res.statusCode = 200;
     res.setHeader('Content-Type', 'text/javascript');
-    const clientUtilsDirname = "/client-utils";
-    fs.createReadStream(__dirname + `${clientUtilsDirname}/${name}`).pipe(res);
+    // const clientUtilsDirname = "/client-utils";
+    const utilFilePath = `${__dirname}/client-utils/${name}`;
+    console.log(`About to serve file: ${utilFilePath}`)
+    fs.createReadStream(utilFilePath).pipe(res);
 }
 
-function getUtils(req: http.IncomingMessage, res: http.ServerResponse) {
-    console.log(`Getting utils for req: ${req.method} ${req.url}`);
-    const nameInUrlPattern: RegExp = /\/([a-zA-Z.\-]+)/
-    const nameMatch: RegExpMatchArray | null = req.url!.match(nameInUrlPattern)
-    const name: string | undefined = nameMatch ? nameMatch[1] : '';
-    if (!name) return;
-    console.log(`Getting util file: ${name}`);
-    getUtilByName(req, res, name);
-}
+// function getUtils(req: http.IncomingMessage, res: http.ServerResponse) {
+//     console.log(`Getting utils for req: ${req.method} ${req.url}`);
+//     const nameInUrlPattern: RegExp = /\/([a-zA-Z.\-]+)/
+//     const nameMatch: RegExpMatchArray | null = req.url!.match(nameInUrlPattern)
+//     const name: string | undefined = nameMatch ? nameMatch[1] : '';
+//     if (!name) return;
+//     console.log(`Getting util file: ${name}`);
+//     getUtilByName(req, res, name);
+// }
 
-function getSocketUtils(req: http.IncomingMessage, res: http.ServerResponse) {
-    console.log(`Getting socket utils for req: ${req.method} ${req.url}`);
-    const nameInUrlPattern: RegExp = /\/([a-zA-Z.\-]+)/
-    const nameMatch: RegExpMatchArray | null = req.url!.match(nameInUrlPattern)
-    const name: string | undefined = nameMatch ? nameMatch[1] : '';
-    if (!name) return;
-    console.log(`Getting socket util file: ${name}`);
-    getUtilByName(req, res, name);
-}
+// function getSocketUtils(req: http.IncomingMessage, res: http.ServerResponse) {
+//     console.log(`Getting socket utils for req: ${req.method} ${req.url}`);
+//     const nameInUrlPattern: RegExp = /\/([a-zA-Z.\-]+)/
+//     const nameMatch: RegExpMatchArray | null = req.url!.match(nameInUrlPattern)
+//     const name: string | undefined = nameMatch ? nameMatch[1] : '';
+//     if (!name) return;
+//     console.log(`Getting socket util file: ${name}`);
+//     getUtilByName(req, res, name);
+// }
 
-function getUIUtils(req: http.IncomingMessage, res: http.ServerResponse) {
-    console.log(`Getting ui utils for req: ${req.method} ${req.url}`);
-    const nameInUrlPattern: RegExp = /\/([a-zA-Z.\-]+)/
-    const nameMatch: RegExpMatchArray | null = req.url!.match(nameInUrlPattern)
-    const name: string | undefined = nameMatch ? nameMatch[1] : '';
-    if (!name) return;
-    console.log(`Getting ui util file: ${name}`);
-    getUtilByName(req, res, name);
-}
+// function getUIUtils(req: http.IncomingMessage, res: http.ServerResponse) {
+//     console.log(`Getting ui utils for req: ${req.method} ${req.url}`);
+//     const nameInUrlPattern: RegExp = /\/([a-zA-Z.\-]+)/
+//     const nameMatch: RegExpMatchArray | null = req.url!.match(nameInUrlPattern)
+//     const name: string | undefined = nameMatch ? nameMatch[1] : '';
+//     if (!name) return;
+//     console.log(`Getting ui util file: ${name}`);
+//     getUtilByName(req, res, name);
+// }
 
 function getNotFound(req: http.IncomingMessage, res: http.ServerResponse) {
     console.log(`Path not found for req: ${req.method} ${req.url}`);

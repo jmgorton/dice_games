@@ -30,9 +30,8 @@ export class URITree implements URITreeData {
     defaultNotFound(request: http.IncomingMessage, response: http.ServerResponse): void {
         console.log(`Serving default 404 for ${request.method} ${request.url}`);
         response.statusCode = 404;
-        response.setHeader('Content-Type', 'text/html');
-        response.end('<h1>hi there</h1>\n' + '<p>the page you requested was not found... bummer!</p>'
-            + '<p>this is the default 404 page! please go back to the <a href="http://localhost:1313">homepage</a></p>');
+        response.setHeader('Content-Type', 'application/json');
+        response.end(JSON.stringify({ err: 'Not Found' }));
     }
 
     constructor(data: URITreeData) {
@@ -44,35 +43,43 @@ export class URITree implements URITreeData {
 
     handleRequest(request: http.IncomingMessage, response: http.ServerResponse): void {
         // weird request, just return 404 i guess
-        if (!request || !request.url || !request.method) return this.default404Response!(request, response);
+        if (!request || !request.url || !request.method) {
+            console.log(`Received a weird request! ${request}`);
+            return this.default404Response!(request, response);
+        }
 
         if (typeof this.route === 'string') {
             // if we somehow got to the wrong URITree node, serve a 404
             if (!request.url.startsWith(this.route)) return this.default404Response!(request, response);
             // if this is the end of the url that the browser is requesting,
             // return true if we are set up to handle a request like this 
-            const remainingURI = request.url.substring(this.route.length);
+            let remainingURI = request.url.substring(this.route.length);
             const charactersToIgnore = '!#$%&\'()*+,:;=?@[]'; // also /, in that case we pass to child
             if (!remainingURI || remainingURI.length === 0 || charactersToIgnore.includes(remainingURI.charAt(0))) {
                 // return this.handlerMap === undefined || !((request.method as HTTPMethod) in this.handlerMap);
-                if (!this.handlerMap || !((request.method as HTTPMethod) in this.handlerMap)) 
+                if (!this.handlerMap || !((request.method as HTTPMethod) in this.handlerMap)) {
+                    console.log(`Could not serve request of type ${request.method} at ${this.route}
+                        because available options include: ${Object.keys(this.handlerMap ?? {})}`)
                     return this.default404Response!(request, response);
+                }
                 // maybe unsafe-ish, since we're passing request on to the handlerMap and
                 // expecting it to execute safely... maybe only execute if remainingURI is actually empty 
                 return this.handlerMap[request.method as HTTPMethod]!(request, response);
             }
             // find out if we should pass this to a child or serve 404
-            if (remainingURI[0] !== '/') {
+            // console.log(`Resolving remaining URI: ${remainingURI}`);
+            if (remainingURI.charAt(0) == '/') remainingURI = remainingURI.substring(1);
+            const delimiterIndex = remainingURI.indexOf('/');
+            const childToLookFor = delimiterIndex > -1 ? remainingURI.substring(0, delimiterIndex) : remainingURI;
+            console.log(`Looking for child route handler: ${childToLookFor}`);
+            if (!this.childRoutes || !(childToLookFor in this.childRoutes)) {
+                // console.log(`No children can service this request. We can still try to serve assets here using this pattern: ${this.availableAssetsAtRoute}`);
                 if (this.availableAssetsAtRoute && this.availableAssetsAtRoute.test(request.url)) {
                     if (!this.assetServerHandler) return this.default404Response!(request, response);
                     return this.assetServerHandler(request, response);
                 }
                 return this.default404Response!(request, response);
             }
-            const delimiterIndex = remainingURI.indexOf('/', 1);
-            const childToLookFor = delimiterIndex > -1 ? remainingURI.substring(0, delimiterIndex) : remainingURI;
-            if (!this.childRoutes || !(childToLookFor in this.childRoutes))
-                return this.default404Response!(request, response);
             return this.childRoutes[childToLookFor]?.handleRequest(request, response);
         // } else if (typeof this.route === 'object' && this.route instanceof RegExp) {
         //     // we have no way to serve this type of request

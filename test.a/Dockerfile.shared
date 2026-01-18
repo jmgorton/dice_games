@@ -1,2 +1,0 @@
-FROM scratch as shared
-COPY . /shared

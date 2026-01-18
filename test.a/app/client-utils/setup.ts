@@ -32,7 +32,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         const hostnameEl = document.getElementById("hostname")
         if (hostnameEl) {
             const hostnameResponse = await fetch('http://localhost:1313/hostname');
-            hostnameEl.innerText = await hostnameResponse.text();
+            // hostnameEl.innerText = await hostnameResponse.text();
+            if (hostnameResponse.ok || hostnameResponse.status == 200) {
+                hostnameEl.innerText = await hostnameResponse.text();
+            }
             // const hostnamePromise = fetch('http://localhost:1313/hostname');
             // hostnamePromise.then((res: Response) => {
             //     if (!res || !res.body) return;
