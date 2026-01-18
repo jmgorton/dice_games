@@ -1,8 +1,8 @@
 import http from 'http';
 import { WebSocketServer } from 'ws';
 
-import { URITree } from '@shared/types.js';
-import type { URITreeData, HTTPMethod } from '@shared/types.js'
+import { URITree } from './types.js';
+import type { URITreeData, HTTPMethod } from './types.js'
 // import { setupWebSocketEventHandlers } from './server-utils/event-handlers.js';
 
 const protocol = 'http';

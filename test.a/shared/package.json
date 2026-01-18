@@ -7,10 +7,12 @@
   "type": "module",
   "main": "server.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc"
   },
   "dependencies": {
     "@types/ws": "^8.18.1",
+    "typescript": "^5.9.3",
     "ws": "^8.19.0"
   }
 }

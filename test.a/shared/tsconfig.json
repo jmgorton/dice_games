@@ -1,5 +1,4 @@
 {
-  // "extends": "../shared/tsconfig.json",
   // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
     // File Layout
@@ -42,13 +41,8 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
-    "baseUrl": ".",
-    "paths": {
-      "@shared/*": ["../shared/dist/*"]
-    }
   },
   "include": [
-    "**/*.ts",
-    // "../shared/**/*.ts"
+    "**/*.ts"
   ]
 }
