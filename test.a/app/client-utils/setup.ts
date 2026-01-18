@@ -5,6 +5,7 @@ import {
     send,
     handleKey
 } from './utils.js'
+// import { uptime } from 'process';
 
 // type="module" in index.html makes this an ES module 
 // top-level functions are module-scoped, not globals
@@ -45,7 +46,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     } else {
         console.log("Document not found.");
     }
-})
+});
+
+const uptimeEl = document.getElementById("uptime");
+// let intervalId: number = window.setInterval(async () => {
+//     if (uptimeEl) {
+//         // TODO use window.loc or something
+//         const uptimeResponse = await fetch('http://localhost:1313/uptime');
+//         if (uptimeResponse.status == 200) uptimeEl.innerText = await uptimeResponse.text();
+//     }
+// }, 1000);
 
 // dark mode 
 document.body.style.backgroundColor = '#333';
@@ -73,10 +83,10 @@ document.head.appendChild(style);
 
 document.addEventListener("DOMContentLoaded", () => {
     // const routes: string[] = ["/test", "/play", "/pywss"];
-    // const labels: string[] = ["/test (websock) JS", "/play (websockb) Lotto Sim", "/pywss (websockc) PY"];
+    // const labels: string[] = ["/test (websock) JS", "/play (play) Lotto Sim", "/pywss (websockc) PY"];
     const buttonAttrs = [
         { href: "/test", innerText: "/test (websock) JS" },
-        { href: "/play", innerText: "/play (websockb) Lotto Sim" },
+        { href: "/play", innerText: "/play (play) Lotto Sim" },
         { href: "/pywss", innerText: "/pywss (websockc) Python" },
     ]
     const navButtonDiv = document.getElementById("nav-buttons") as HTMLDivElement;
@@ -89,6 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // navButton.href = routes[i]!; // why do i have to assert not undefined??
         // navButton.innerText = labels[i]!; // is it because i might be outside the range? 
         navButton.classList.add("dynamic-link");
+        // navButton.onclick = () => window.clearInterval(intervalId);
         navButtonDiv.appendChild(navButton);
     }
 });
@@ -112,7 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
         },
         "buttonInput": {
             id: "test-wsb-login",
-            value: "Connect (/play websockb)",
+            value: "Connect (/play)",
             onclick: connectPlay,
         },
     };

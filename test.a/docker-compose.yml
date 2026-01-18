@@ -16,7 +16,9 @@ services:
       - ./websock:/opt/app
     command: node /opt/app/websock.js
   play:
-    build: ./websockb
+    build: # ./play
+      context: .
+      dockerfile: Dockerfile.play
   pywss:
     build: ./websockc
   nginx:

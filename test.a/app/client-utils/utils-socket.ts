@@ -14,7 +14,7 @@ export function getWebSocketUrlByURI(uri: string): string {
     const URL = `${protocol}//${host}/${uri}`; 
     // // uri: 
     // // pywss = websockc (Python) 
-    // // play = websockb (JS) 
+    // // play = /play (JS) 
     // // test = websock (JS) ... NOT a websocket connection yet, just HTTP so far 
     return URL
 }

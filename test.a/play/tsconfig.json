@@ -2,12 +2,13 @@
   // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
     // File Layout
-    // "rootDir": "./src",
+    "rootDir": ".",
     "outDir": "./dist",
 
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
     "module": "nodenext",
+    "moduleResolution": "nodenext", // For nodejs resolution, ensure compiler options set for ESM
     "target": "esnext",
     // "types": [],
     // For nodejs:
@@ -40,5 +41,13 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
-  }
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["../shared/dist/*"]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    // "../shared/**/*.ts"
+  ]
 }

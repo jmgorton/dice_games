@@ -258,7 +258,7 @@ export function connectPlay() {
 
     const playWSUrl = getWebSocketUrlByURI("play");
     // var ws = new WebSocket("ws://localhost:1313/play");
-    // ws = new WebSocket(playWSUrl, "json"); // test = websockb (JS) 
+    // ws = new WebSocket(playWSUrl, "json"); // test = play (JS) 
     const socket = getSocketWithListenersByURL(playWSUrl, {
         ...jsWsEventHandlers,
         ...commonEventHandlers,

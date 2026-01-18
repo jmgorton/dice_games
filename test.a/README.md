@@ -2,12 +2,12 @@
 
 ## About
 
-Uses Docker and Docker Compose to create a network of services, including the following: app (app/), test (websock/), play (websockb/), pywss (websockc/) and nginx (nginx/).
+Uses Docker and Docker Compose to create a network of services, including the following: app (app/), test (websock/), play (play/), pywss (websockc/) and nginx (nginx/).
 
 Service details:
 - app: Implements a basic UI (index.html) for the user to interact with backend services; an HTTP server (app.js) handling requests and returning responses; and a WebSocket client object for accessing the API to interact with WebSocketServers in connected backend services.
 - websock (test): Right now it's some silly little lottery simulator... Not built with Dockerfile, basic image, volumes, and command specified in root docker-compose.yml... probably will scrap/rework this entirely (found at /test endpoint).
-- websockb (play): This is a simple functioning http and websocket server that can receive http requests and respond or upgrade them to websocket connections, used for the /play endpoint 
+- play (play): This is a simple functioning http and websocket server that can receive http requests and respond or upgrade them to websocket connections, used for the /play endpoint 
 - websockc (pywss): A simple Python WebSocket server using asyncio ... use .venv3.13 for local testing 
 - nginx: Provides a simple load-balancing configuration (lb.conf) for receiving requests on port 8080 and routing based on request path to the appropriate service and port (app as /:3000; websock as test/:6502; play as play/:9090) as configured in the respective directories' sourcecode. The docker-compose.yml file attaches the external port 1313 to the nginx container's 8080, meaning navigating to localhost:1313 hits the Nginx LB and gets routed to the appropriate backend container based on path (app/ by default). 
 
