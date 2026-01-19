@@ -1,4 +1,4 @@
-# Example test.a
+# Dice Games
 
 ## About
 
@@ -13,7 +13,7 @@ Service details:
 
 ## How to Run Locally
 
-1. from the test.a directory, run `docker-compose up -d` (or also acceptable: `docker compose up -d` now)
+1. from the main directory, run `docker-compose up -d` (or also acceptable: `docker compose up -d` now)
 2. go to localhost:1313 in a browser 
 
 ## Notes

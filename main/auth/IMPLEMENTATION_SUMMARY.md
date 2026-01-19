@@ -28,7 +28,7 @@ A minimal, production-ready token authentication system with three core componen
 ## Key Files Modified/Created
 
 ```
-test.a/
+main/
 ├── auth/
 │   └── auth.js                    [MODIFIED] Complete auth endpoint
 ├── shared/

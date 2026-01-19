@@ -19,9 +19,9 @@
          │  Load Balancer / Reverse Proxy         │
          ├────────────────────────────────────────┤
          │ Routes:                                │
-         │  /auth  ──> testa-auth-1:6502        │
-         │  /play  ──> testa-play-1:9090        │
-         │  /      ──> testa-app-1:3000         │
+         │  /auth  ──> main-auth-1:6502        │
+         │  /play  ──> main-play-1:9090        │
+         │  /      ──> main-app-1:3000         │
          └────┬─────────────────┬────────────────┘
               │                 │
               │                 │
