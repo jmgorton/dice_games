@@ -31,3 +31,4 @@ services:
       - app
       - websock
       - play
+      - collab

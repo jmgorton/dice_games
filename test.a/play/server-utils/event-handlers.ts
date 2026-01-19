@@ -19,7 +19,7 @@ import { URITree } from '../../shared/dist/types.js';
 
 // var connectionArray: any[] = []; // TODO remove, use wss.clients and if (client.readyState === WebSocket.OPEN)
 // See: https://www.npmjs.com/package/ws # Server broadcast 
-var nextID = Date.now();
+// var nextID = Date.now();
 // const ip = req.socket.remoteAddress; to get ip of client...
 // "When the server runs behind a proxy like NGINX, the de-facto standard
 // is to use the X-Forwarded-For header."
@@ -46,66 +46,25 @@ var appendToMakeUnique = 1;
 
 // what in the python self syntax ... but i'll continue, 
 // it's in the spec and `this` is not allowed here 
-const wssOnClose = (self: WebSocketServer) => {
+function wssOnClose (this: WebSocketServer) {
 
 };
 
-const wssOnError = (self: WebSocketServer, error: Error) => {
+function wssOnError (this: WebSocketServer, error: Error) {
 
 };
 
-const wssOnHeaders = (self: WebSocketServer, headers: string[], request: http.IncomingMessage) => {
+function wssOnHeaders (this: WebSocketServer, headers: string[], request: http.IncomingMessage) {
 
 };
 
-// // // Stream not found, not in ws? But createWebSocketStream is in ws (Node.js streams) 
-// const wssOnWsClientError = (self: WebSocketServer, error: Error, socket: Stream.Duplex, request: http.IncomingMessage) => {
+function wssOnWsClientError (this: WebSocketServer, error: Error, socket: Stream.Duplex, request: http.IncomingMessage) {
 
-// };
-
-
-
-const wssOnConnection = (ws: WebSocket, request: http.IncomingMessage) => {
-    ws.on('open', (self: WebSocket) => {
-        // implicitly handled server-side 
-    });
-
-    ws.on('redirect', (self: WebSocket, url: string, request: http.ClientRequest) => {
-
-    });
-
-    // this is an event that should (maybe) be bound to the http server ... as well? or instead? 
-    // i guess both servers might do something different on this event 
-    ws.on('upgrade', (self: WebSocket, request: http.IncomingMessage) => {
-
-    });
-
-    ws.on('error', (self: WebSocket, error: Error) => {
-
-    });
-
-    ws.on('unexpected-response', (self: WebSocket, request: http.ClientRequest, response: http.IncomingMessage) => {
-
-    });
-
-    ws.on('ping', (self: WebSocket, data: Buffer) => {
-
-    });
-
-    ws.on('pong', (self: WebSocket, data: Buffer) => {
-        
-    });
-
-    ws.on('message', (self: WebSocket, data: WebSocket.RawData, isBinary: boolean) => {
-
-    })
-
-    ws.on('close', (code: number, reason: Buffer) => {
-
-    });
 };
 
-const wssOnConnectionOld = function (ws: WebSocket, request: http.IncomingMessage) {
+
+
+function wssOnConnection(this: WebSocketServer, ws: WebSocket, request: http.IncomingMessage) {
 
     // properties i see in index.d.mts (drill into wss.on)
     // wss.options: WebSocket.ServerOptions<T, U>;
@@ -120,7 +79,7 @@ const wssOnConnectionOld = function (ws: WebSocket, request: http.IncomingMessag
     //     upgradeHead: Buffer,
     //     callback: (client: InstanceType<T>, request: InstanceType<U>) => void,
     // ): void;
-    // wss.houldHandle(request: InstanceType<U>): boolean | Promise<boolean>;
+    // wss.shouldHandle(request: InstanceType<U>): boolean | Promise<boolean>;
 
     // (method) WebSocket.on(
     //      event: "message", 
@@ -130,9 +89,124 @@ const wssOnConnectionOld = function (ws: WebSocket, request: http.IncomingMessag
     //          isBinary: boolean
     //      ) => void
     // ): WebSocket (+8 overloads)
-    
 
-    ws.on('message', function (message: any) { // TODO type this later 
+    ws.on('open', function (this: WebSocket) {
+        // implicitly handled server-side 
+    });
+
+    ws.on('redirect', function (this: WebSocket, url: string, request: http.ClientRequest) {
+
+    });
+
+    // this is an event that should (maybe) be bound to the http server ... as well? or instead? 
+    // i guess both servers might do something different on this event 
+    ws.on('upgrade', function (this: WebSocket, request: http.IncomingMessage) {
+
+    });
+
+    ws.on('error', function (this: WebSocket, error: Error) {
+
+    });
+
+    ws.on('unexpected-response', function (this: WebSocket, request: http.ClientRequest, response: http.IncomingMessage) {
+
+    });
+
+    ws.on('ping', function (this: WebSocket, data: Buffer) {
+
+    });
+
+    ws.on('pong', function (this: WebSocket, data: Buffer) {
+        
+    });
+
+    ws.on('message', function (this: WebSocket, data: WebSocket.RawData, isBinary: boolean) {
+        let message = data;
+        console.log(`DATA: ${data}`);
+        try {
+            message = JSON.parse(data.toString());
+            console.log(`MESSAGE: ${message}`)
+        } catch (err: any) {
+            if (err instanceof SyntaxError) {
+                console.warn('Message was not parsable');
+            }
+        }
+        // if (message.type === 'utf8') {
+        //     console.log("Received Message: " + message.utf8Data);
+
+        //     // Process messages
+        //     var sendToClients = true;
+        //     msg = JSON.parse(message.utf8Data);
+        //     var connect = getConnectionForID(msg.id);
+        //     if (!connect || !('name' in msg)) return;
+
+        //     // Look at the received message type and
+        //     // handle it appropriately.
+        //     switch (msg.type) {
+        //         // Public text message in the chat room
+        //         case "message":
+        //             if (!('text' in msg)) return;
+        //             msg.name = connect.username;
+        //             msg.text = (msg.text as string).replace(/(<([^>]+)>)/ig, "");
+        //             break;
+
+        //         // Username change request
+        //         case "username":
+        //             var nameChanged = false;
+        //             var origName = msg.name;
+
+        //             // Force a unique username by appending
+        //             // increasing digits until it's unique.
+        //             while (!isUsernameUnique(msg.name as string)) {
+        //                 msg.name = origName as string + appendToMakeUnique;
+        //                 appendToMakeUnique++;
+        //                 nameChanged = true;
+        //             }
+
+        //             // If the name had to be changed, reject the
+        //             // original username and let the other user
+        //             // know their revised name.
+        //             if (nameChanged) {
+        //                 var changeMsg = {
+        //                     id: msg.id,
+        //                     type: "rejectusername",
+        //                     name: msg.name
+        //                 };
+        //                 connect.sendUTF(JSON.stringify(changeMsg));
+        //             }
+
+        //             connect.username = msg.name;
+        //             sendUserListToAll();
+        //             break;
+        //     }
+
+        //     // Convert the message back to JSON and send it out
+        //     // to all clients.
+        //     if (sendToClients) {
+        //         var msgString = JSON.stringify(msg);
+        //         var i;
+
+        //         for (i = 0; i < connectionArray.length; i++) {
+        //             connectionArray[i].sendUTF(msgString);
+        //         }
+        //     }
+        // }
+    })
+
+    ws.on('close', (code: number, reason: Buffer) => {
+        // // connectionArray = connectionArray.filter(function (el, idx, ar) {
+        // //     return el.connected;
+        // // });
+        // const toRemoveIndex = connectionArray.findIndex(el => !el.connected);
+        // connectionArray.splice(toRemoveIndex, 1);
+        // sendUserListToAll();  // Update the user lists
+        // console.log((new Date()) + " Peer " + connection.remoteAddress + " disconnected.");
+    });
+};
+
+const wssOnConnectionOld = function (this: WebSocketServer, ws: WebSocket, request: http.IncomingMessage) {
+
+    ws.on('message', function (message: any) { // TODO type this later ???
         console.log("***MESSAGE: %s", message);
         ws.send(`Server received: ${message}`);
         if (message.type === 'utf8') {
@@ -196,139 +270,12 @@ const wssOnConnectionOld = function (ws: WebSocket, request: http.IncomingMessag
     });
 };
 
-// TODO research: is this correct? well, i guess this was from before we created an explicit http server... 
-//      maybe is this trying to handle the on('upgrade') logic from a standard HTTP request, and provide 
-//      additional validation before creating a full-duplex connection to the wss server
-// is there any difference between http.Server.on('request') and ws.WebSocketServer.on('request')
-// "the http.Server.on('request') and ws.WebSocketServer.on('request') events do not bind to the same 
-//      'request' event, and in fact, the ws library's WebSocketServer does not emit a 'request' event 
-//      for standard HTTP requests. The http.Server handles the initial HTTP part of the handshake. 
-//      If you are using the same server instance for both, you should handle standard HTTP requests 
-//      using the request event and the WebSocket upgrade requests using the upgrade event."
-
-// // req: http.IncomingMessage, res: http.ServerResponse
-// const wssOnRequestFIXTHIS = function (request: any) { // TODO what is the request type??
-//     console.log("Handling request from " + request.origin);
-
-//     // The origin property doesn't exist directly on Node.js's built-in http.IncomingMessage 
-//     //  because it's a low-level stream representing raw HTTP data; you'll find origin information 
-//     //  (like req.headers.origin or req.headers.host) within the headers object, but frameworks 
-//     //  like Express or Koa enhance req (often an IncomingMessage) with convenience properties 
-//     //  like .query, .body, or origin. To get the origin, access req.headers.origin (for CORS) 
-//     //  or req.headers.host and parse the URL, or use a framework for easier access. 
-
-//     if (!originIsAllowed(request.origin)) {
-//         request.reject();
-//         console.log("Connection from " + request.origin + " rejected.");
-//         return;
-//     }
-
-//     // Accept the request and get a connection.
-//     var connection = request.accept("json", request.origin);
-
-//     // Add the new connection to our list of connections.
-//     console.log((new Date()) + " Connection accepted.");
-//     connectionArray.push(connection);
-
-//     // Send the new client its token; it will
-//     // respond with its login username.
-//     connection.clientID = nextID;
-//     nextID++;
-
-//     var msg = {
-//         type: "id",
-//         id: connection.clientID
-//     };
-//     connection.sendUTF(JSON.stringify(msg));
-
-//     // Handle the "message" event received over WebSocket. This
-//     // is a message sent by a client, and may be text to share with
-//     // other users or a command to the server.
-
-//     connection.on('message', function (message: any) { // TODO type this later
-//         console.log("***MESSAGE");
-//         if (message.type === 'utf8') {
-//             console.log("Received Message: " + message.utf8Data);
-
-//             // Process messages
-//             var sendToClients = true;
-//             msg = JSON.parse(message.utf8Data);
-//             var connect = getConnectionForID(msg.id);
-//             if (!connect || !('name' in msg)) return;
-
-//             // Look at the received message type and
-//             // handle it appropriately.
-//             switch (msg.type) {
-//                 // Public text message in the chat room
-//                 case "message":
-//                     if (!('text' in msg)) return;
-//                     msg.name = connect.username;
-//                     msg.text = (msg.text as string).replace(/(<([^>]+)>)/ig, "");
-//                     break;
-
-//                 // Username change request
-//                 case "username":
-//                     var nameChanged = false;
-//                     var origName = msg.name;
-
-//                     // Force a unique username by appending
-//                     // increasing digits until it's unique.
-//                     while (!isUsernameUnique(msg.name as string)) {
-//                         msg.name = origName as string + appendToMakeUnique;
-//                         appendToMakeUnique++;
-//                         nameChanged = true;
-//                     }
-
-//                     // If the name had to be changed, reject the
-//                     // original username and let the other user
-//                     // know their revised name.
-//                     if (nameChanged) {
-//                         var changeMsg = {
-//                             id: msg.id,
-//                             type: "rejectusername",
-//                             name: msg.name
-//                         };
-//                         connect.sendUTF(JSON.stringify(changeMsg));
-//                     }
-
-//                     connect.username = msg.name;
-//                     sendUserListToAll();
-//                     break;
-//             }
-
-//             // Convert the message back to JSON and send it out
-//             // to all clients.
-//             if (sendToClients) {
-//                 var msgString = JSON.stringify(msg);
-//                 var i;
-
-//                 for (i = 0; i < connectionArray.length; i++) {
-//                     connectionArray[i].sendUTF(msgString);
-//                 }
-//             }
-//         }
-//     });
-
-//     // Handle the WebSocket "close" event; this means a user has logged off
-//     // or has been disconnected.
-
-//     connection.on('close', function (connection: any) {
-//         // connectionArray = connectionArray.filter(function (el, idx, ar) {
-//         //     return el.connected;
-//         // });
-//         const toRemoveIndex = connectionArray.findIndex(el => !el.connected);
-//         connectionArray.splice(toRemoveIndex, 1);
-//         sendUserListToAll();  // Update the user lists
-//         console.log((new Date()) + " Peer " + connection.remoteAddress + " disconnected.");
-//     });
-// };
-
 
 export const setupWebSocketEventHandlers = (wss: WebSocketServer) => {
-    wss.on('close', () => wssOnClose(wss));
-    wss.on('error', (error: Error) => wssOnError(wss, error));
-    wss.on('connection', (ws: WebSocket, request: http.IncomingMessage) => wssOnConnection(ws, request));
-    wss.on('connection', (ws: WebSocket, request: http.IncomingMessage) => wssOnConnectionOld(ws, request));
+    wss.on('close', () => wssOnClose.call(wss));
+    wss.on('error', (error: Error) => wssOnError.call(wss, error));
+    wss.on('connection', (ws: WebSocket, request: http.IncomingMessage) => wssOnConnection.call(wss, ws, request));
+    wss.on('connection', (ws: WebSocket, request: http.IncomingMessage) => wssOnConnectionOld.call(wss, ws, request));
     wss.on('headers', wssOnHeaders);
     // wss.on('request', wssOnRequestFIXTHIS); // does this even do anything?? no
     return wss;
@@ -337,7 +284,7 @@ export const setupWebSocketEventHandlers = (wss: WebSocketServer) => {
 // ******* Creating a very simple middle-ware stack to emulate basic features from other frameworks like Express ********
 
 const logger = (request: http.IncomingMessage, response: http.ServerResponse, next: (err?: Error) => void) => {
-    console.log(`[${new Date().toISOString()}] Received ${request.method} ${request.url} from ${request.headers.origin}`);
+    console.log(`[${new Date().toISOString()}] ${request.method} ${request.url} from Origin: ${request.headers.origin}`);
     next();
 }
 
@@ -363,11 +310,11 @@ const validator = (request: http.IncomingMessage, response: http.ServerResponse,
 }
 
 const authenticator = (request: http.IncomingMessage, response: http.ServerResponse, next: (err?: Error) => void) => {
-    const possibleAuthHeaderIDK = ['x-auth', 'authorization', 'proxy-authenticate', 'proxy-authorization', 'www-authenticate'];
-    if (request.url === '/play/admin' && !possibleAuthHeaderIDK.some(header => header in request.headers)) {
-        // checking for at least one of those headers, idk what will happen 
-        return next(new Error('Unauthorized'));
-    }
+    // const possibleAuthHeaderIDK = ['x-auth', 'authorization', 'proxy-authenticate', 'proxy-authorization', 'www-authenticate'];
+    // if (request.url === '/play/admin' && !possibleAuthHeaderIDK.some(header => header in request.headers)) {
+    //     // checking for at least one of those headers, idk what will happen 
+    //     return next(new Error('Unauthorized'));
+    // }
     return next();
 }
 
@@ -385,7 +332,25 @@ function getHostname(req: http.IncomingMessage, res: http.ServerResponse): void 
     res.end(os.hostname());
 }
 
+const utilFilepathMatcher = /^\/play\/((?:setup|lotto-utils)\.[jt]s(?:\.map)?)$/;
+
 function serveStaticFile(req: http.IncomingMessage, res: http.ServerResponse, staticFilename?: string): void {
+    if (!staticFilename) {
+        const fileMatcher = utilFilepathMatcher;
+        const parsedRequestURL = req.url?.match(fileMatcher);
+        if (!parsedRequestURL || !parsedRequestURL[1]) {
+            if (req.url === '/play' && req.method === 'GET') {
+                staticFilename = 'index.html'
+            } else {
+                // console.log(`No match for ${parsedRequestURL}`);
+                res.writeHead(404, { "content-type": "application/json" });
+                res.end(JSON.stringify({ error: 'Not Found' }));
+            }
+        } else {
+            staticFilename = parsedRequestURL[1];
+        }
+    }
+
     res.statusCode = 200;
     let subpath = '';
     if (!staticFilename) staticFilename = 'index.html';
@@ -433,13 +398,13 @@ function serveStaticFile(req: http.IncomingMessage, res: http.ServerResponse, st
 
 export const routeHandler = new URITree({
     route: '/play',
-    availableAssetsAtRoute: /^\/(setup|lotto-utils)\.[jt]s(\.map)?$/,
-    assetServerHandler: () => {},
+    availableAssetsAtRoute: utilFilepathMatcher,
+    assetServerHandler: serveStaticFile,
     handlerMap: {
         "GET": serveStaticFile,
     },
     childRoutes: {
-        '/hostname': new URITree({
+        'hostname': new URITree({
             route: '/play/hostname',
             handlerMap: {
                 "GET": getHostname,
@@ -449,6 +414,7 @@ export const routeHandler = new URITree({
 })
 
 const httpServerOnRequest = (request: http.IncomingMessage, response: http.ServerResponse<http.IncomingMessage> & { req: http.IncomingMessage; }) => {
+    // console.log(`HTTP Server on request: ${request.url}`);
     // putting similar logic to wssOnRequestFIXTHIS in here... actually can't really do that 
     // but refactoring and creating a middleware stack, loosely based on 
     // what Gemini told me Express's arch would be like at a very basic level 
@@ -456,18 +422,26 @@ const httpServerOnRequest = (request: http.IncomingMessage, response: http.Serve
     let index = 0; // the stage of the stack each request being handled is at 
     const next = (err?: Error) => {
         if (err) {
+            // console.log(`Hoping there's no error... ${err}`);
             errorHandler(err, request, response, next);
         } else if (index < middlewareStack.length) {
+            // console.log(`In the middleware stack at index: ${index}`);
             // TODO validate... Cannot invoke an object which is possibly 'undefined'. It's defined as const above?? 
             // need to understand that error on a deeper level 
             middlewareStack[index++]!(request, response, next); 
         } else {
+            // console.log(`About to handle request after middleware executed.`);
             routeHandler.handleRequest(request, response);
         }
     }
+    next();
 }
 
 const httpServerOnUpgrade = (req: http.IncomingMessage, socket: Stream.Duplex, head: NonSharedBuffer) => {
+    // started as an HTTP onRequest event that included the Upgrade header,
+    // our HTTP server responds with a 101 Switching Protocols and then 
+    // transitions to the websocket protocol on the underlying TCP socket (onUpgrade)
+
     // socket.on('error', onSocketError);
 
     // // This function is not defined on purpose. Implement it with your own logic.
@@ -484,11 +458,43 @@ const httpServerOnUpgrade = (req: http.IncomingMessage, socket: Stream.Duplex, h
     //     wss.emit('connection', ws, request, client);
     //     });
     // });
+
+    // Can we have access to the WSS/HTTP servers here?? 
+
+    // // Accept the request and get a connection.
+    // var connection = req.accept("json", req.headers.origin);
+
+    // // Add the new connection to our list of connections.
+    // console.log((new Date()) + " Connection accepted.");
+    // connectionArray.push(connection);
+
+    // // Send the new client its token; it will
+    // // respond with its login username.
+    // connection.clientID = nextID;
+    // nextID++;
+
+    // var msg = {
+    //     type: "id",
+    //     id: connection.clientID
+    // };
+    // connection.sendUTF(JSON.stringify(msg));
 }
 
+// handle the on('upgrade') logic from a standard HTTP request, and provide 
+//      additional validation before creating a full-duplex connection to the wss server
+// is there any difference between http.Server.on('request') and ws.WebSocketServer.on('request')
+// "the http.Server.on('request') and ws.WebSocketServer.on('request') events do not bind to the same 
+//      'request' event, and in fact, the ws library's WebSocketServer does not emit a 'request' event 
+//      for standard HTTP requests. The http.Server handles the initial HTTP part of the handshake. 
+//      If you are using the same server instance for both, you should handle standard HTTP requests 
+//      using the request event and the WebSocket upgrade requests using the upgrade event."
+    
+
 export const setupHttpServerEventHandlers = (server: http.Server) => {
+    // console.log(`Setting up http server event handlers...`);
     // http.Server.on(eventName: keyof http.ServerEventMap<typeof http.IncomingMessage, typeof http.ServerResponse>
     server.on('request', httpServerOnRequest)
-    server.on('upgrade', httpServerOnUpgrade)
+    // server.on('upgrade', httpServerOnUpgrade)
+    // console.log(`Set up server with event listeners...`);
     return server;
 }

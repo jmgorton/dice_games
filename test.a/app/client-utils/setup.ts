@@ -48,14 +48,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 });
 
-const uptimeEl = document.getElementById("uptime");
-// let intervalId: number = window.setInterval(async () => {
-//     if (uptimeEl) {
-//         // TODO use window.loc or something
-//         const uptimeResponse = await fetch('http://localhost:1313/uptime');
-//         if (uptimeResponse.status == 200) uptimeEl.innerText = await uptimeResponse.text();
-//     }
-// }, 1000);
+
+// TODO fix: refreshing breaks this 
+document.addEventListener('visibilitychange', () => {
+    let intervalId: number | undefined;
+    // only two options are visible/hidden
+    if (document.visibilityState === 'visible') {
+        const uptimeEl = document.getElementById("uptime");
+        intervalId = window.setInterval(async () => {
+            if (uptimeEl) {
+                // TODO use window.loc or something
+                const uptimeResponse = await fetch('http://localhost:1313/uptime');
+                if (uptimeResponse.status == 200) uptimeEl.innerText = await uptimeResponse.text();
+            }
+        }, 1000);
+    }
+    else if (document.visibilityState === 'hidden') {
+        if (intervalId) clearInterval(intervalId);
+    }
+})
 
 // dark mode 
 document.body.style.backgroundColor = '#333';

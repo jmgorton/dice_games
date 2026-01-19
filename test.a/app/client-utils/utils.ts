@@ -200,51 +200,65 @@ function jsOnMessage(this: WebSocket, evt: MessageEvent<any>) {
     // alert('Message is received... "' + msg + '"');
 
     var text = "";
-    console.log(evt.data);
-    var msg = JSON.parse(evt.data);
-    console.log("Message received: %s", msg);
+    // console.log(evt.data);
+    var msg = evt.data;
     // console.dir(msg);
-    var time = new Date(msg.date);
-    var timeStr = time.toLocaleTimeString();
+    console.log("Message received: %s", msg);
+    var timeStr = 'unknown'
+    try {
+        var msg = JSON.parse(evt.data);
+        if ('date' in msg) {
+            var time = new Date(msg.date);
+            timeStr = time.toLocaleTimeString();
+        }
 
-    switch (msg.type) {
-        case "id":
-            clientID = msg.id;
-            setUsername();
-            break;
-        case "username":
-            text = "<b>User <em>" + msg.name + "</em> signed in at " + timeStr + "</b><br>";
-            break;
-        case "message":
-            text = "(" + timeStr + ") <b>" + msg.name + "</b>: " + msg.text + "<br>";
-            break;
-        case "rejectusername":
-            text = "<b>Your username has been set to <em>" + msg.name + "</em> because the name you chose is in use.</b><br>";
-            break;
-        case "userlist":
-            var ul = "";
-            var i;
+        if ('type' in msg) {
+            switch (msg.type) {
+                case "id":
+                    clientID = msg.id;
+                    setUsername();
+                    break;
+                case "username":
+                    text = "<b>User <em>" + msg.name + "</em> signed in at " + timeStr + "</b><br>";
+                    break;
+                case "message":
+                    text = "(" + timeStr + ") <b>" + msg.name + "</b>: " + msg.text + "<br>";
+                    break;
+                case "rejectusername":
+                    text = "<b>Your username has been set to <em>" + msg.name + "</em> because the name you chose is in use.</b><br>";
+                    break;
+                case "userlist":
+                    var ul = "";
+                    var i;
 
-            for (i = 0; i < msg.users.length; i++) {
-                ul += msg.users[i] + "<br>";
+                    for (i = 0; i < msg.users.length; i++) {
+                        ul += msg.users[i] + "<br>";
+                    }
+                    const userlistEl = document.getElementById("userlistbox");
+                    if (userlistEl) userlistEl.innerHTML = ul;
+                    break;
             }
-            const userlistEl = document.getElementById("userlistbox");
-            if (userlistEl) userlistEl.innerHTML = ul;
-            break;
+        }
+    } catch (err: unknown) { // type must be unknown or any in catch block 
+        if (err instanceof SyntaxError) {
+
+        }
     }
 
     if (text.length) {
-        const chatboxEl = document.getElementById("chatbox");
-        if (!chatboxEl) return;
-        var f = (chatboxEl as HTMLIFrameElement).contentDocument; // TODO no longer using iframes... or should i? 
-        if (!f) return;
-        f.write(text); // TODO deprecated, replace 
-        var w = (chatboxEl as HTMLIFrameElement).contentWindow // TODO no longer using iframes... or should i? 
-        if (!w) return;
-        // w.scrollByPages(1); // non-standard, not included in TS Window interface
-        // use scrollBy() instead
-        w.scrollBy(0, window.innerHeight) // scroll up one "page" (approx) 
-        // w.scrollBy(0, -window.innerHeight) // scroll down
+        // const chatboxEl = document.getElementById("chatbox");
+        // if (!chatboxEl) return;
+        // var f = (chatboxEl as HTMLIFrameElement).contentDocument; // TODO no longer using iframes... or should i? 
+        // if (!f) return;
+        // f.write(text); // TODO deprecated, replace 
+        // var w = (chatboxEl as HTMLIFrameElement).contentWindow // TODO no longer using iframes... or should i? 
+        // if (!w) return;
+        // // w.scrollByPages(1); // non-standard, not included in TS Window interface
+        // // use scrollBy() instead
+        // w.scrollBy(0, window.innerHeight) // scroll up one "page" (approx) 
+        // // w.scrollBy(0, -window.innerHeight) // scroll down
+
+        addChatMessageToChatBox(text);
     }
 };
 
