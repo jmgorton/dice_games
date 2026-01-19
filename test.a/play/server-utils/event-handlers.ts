@@ -16,6 +16,7 @@ import {
 
 import { __dirname } from '../server.js';
 import { URITree } from '../../shared/dist/types.js';
+import { validateToken, updateTokenActivity } from '../../shared/dist/token-store.js';
 
 // var connectionArray: any[] = []; // TODO remove, use wss.clients and if (client.readyState === WebSocket.OPEN)
 // See: https://www.npmjs.com/package/ws # Server broadcast 
@@ -310,16 +311,32 @@ const validator = (request: http.IncomingMessage, response: http.ServerResponse,
 }
 
 const authenticator = (request: http.IncomingMessage, response: http.ServerResponse, next: (err?: Error) => void) => {
-    // const possibleAuthHeaderIDK = ['x-auth', 'authorization', 'proxy-authenticate', 'proxy-authorization', 'www-authenticate'];
-    // if (request.url === '/play/admin' && !possibleAuthHeaderIDK.some(header => header in request.headers)) {
-    //     // checking for at least one of those headers, idk what will happen 
-    //     return next(new Error('Unauthorized'));
-    // }
+    // Extract token from authorization header or query parameter
+    // Header format: "Bearer <token>" or custom "x-auth-token"
+    let authHeader = request.headers.authorization || request.headers['x-auth-token'];
+    if (Array.isArray(authHeader)) {
+        if (authHeader.length > 1) return next(new Error('Too many auth tokens...??'));
+        else authHeader = authHeader[0];
+    }
+    const token = authHeader?.replace('Bearer ', '') || 
+                  new URL(request.url || '', `http://${request.headers.host}`).searchParams.get('token');
+
+    if (!token || !validateToken(token as string)) {
+        return next(new Error('Unauthorized: Invalid or missing authentication token'));
+    }
+
+    // Update token's last activity time
+    updateTokenActivity(token as string);
+    
+    // Optionally attach token to request for downstream handlers
+    (request as any).authToken = token;
+    
     return next();
 }
 
 const errorHandler = (err: Error, request: http.IncomingMessage, response: http.ServerResponse, next: (err?: Error) => void) => {
     console.error(`Caught error: ${err.name}: ${err.message}: ${err.cause}`);
+    // TODO if unauth error, redirect to /auth/login 
     response.writeHead(500, 'Internal Server Error', { 'Content-Type': 'application/json' });
     response.end(JSON.stringify({ error: err.message || 'Internal Server Error' }));
 }

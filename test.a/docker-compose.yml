@@ -11,10 +11,13 @@ services:
     # depends_on:
     #   - shared
   auth:
-    image: node:latest
-    volumes:
-      - ./auth:/opt/app
-    command: node /opt/app/auth.js
+    # image: node:latest
+    # volumes:
+    #   - ./auth:/opt/app
+    # command: node /opt/app/auth.js
+    build:
+      context: .
+      dockerfile: Dockerfile.auth
   play:
     build: # ./play
       context: .
