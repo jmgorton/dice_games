@@ -83,11 +83,11 @@ document.head.appendChild(style);
 
 document.addEventListener("DOMContentLoaded", () => {
     // const routes: string[] = ["/test", "/play", "/pywss"];
-    // const labels: string[] = ["/test (websock) JS", "/play (play) Lotto Sim", "/pywss (websockc) PY"];
+    // const labels: string[] = ["/test (websock) JS", "/play (play) Lotto Sim", "/collab (collab) PY"];
     const buttonAttrs = [
         { href: "/test", innerText: "/test (websock) JS" },
         { href: "/play", innerText: "/play (play) Lotto Sim" },
-        { href: "/pywss", innerText: "/pywss (websockc) Python" },
+        { href: "/collab", innerText: "/collab (collab) Python" },
     ]
     const navButtonDiv = document.getElementById("nav-buttons") as HTMLDivElement;
     navButtonDiv.style.display = "flex";
@@ -132,8 +132,8 @@ document.addEventListener("DOMContentLoaded", () => {
             id: "namePy",
         },
         "buttonInput": {
-            id: "pywss-login",
-            value: "Connect (/pywss websockc)",
+            id: "collab-login",
+            value: "Connect (/collab)",
             onclick: connectPyWSS,
         },
     };

@@ -13,9 +13,9 @@ export function getWebSocketUrlByURI(uri: string): string {
     const host = loc.host; // ensure the browser connects to the same port nginx is listening on 
     const URL = `${protocol}//${host}/${uri}`; 
     // // uri: 
-    // // pywss = websockc (Python) 
-    // // play = /play (JS) 
-    // // test = websock (JS) ... NOT a websocket connection yet, just HTTP so far 
+    // // /collab = collab (Python) 
+    // // /play = play (JS) 
+    // // /test = websock (JS) ... NOT a websocket connection yet, just HTTP so far 
     return URL
 }
 

@@ -58,7 +58,7 @@ export function getUptime(req: http.IncomingMessage, res: http.ServerResponse) {
 
 function getActiveServices(req: http.IncomingMessage, res: http.ServerResponse) {
     // TODO implement... use built-in docker DNS to ref containers on same bridge network via service name? 
-    const serviceServerNames = ['app', 'websock', 'play', 'pywss', 'nginx'];
+    const serviceServerNames = ['app', 'websock', 'play', 'collab', 'nginx'];
     for (const service of serviceServerNames) {
         try {
             fetch(`http://${service}`)

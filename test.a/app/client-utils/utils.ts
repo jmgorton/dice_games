@@ -87,7 +87,7 @@ var clientID: number = 0;
 export function connectPyWSS() {
     if (!browserSupportsWebSockets()) return;
 
-    const pywssURL = getWebSocketUrlByURI("pywss");
+    const pywssURL = getWebSocketUrlByURI("collab");
 
     // const socket = new WebSocket(pywssURL);
     const socket = getSocketWithListenersByURL(pywssURL, {

@@ -22,7 +22,7 @@ stream_handler = logging.StreamHandler()
 listener = QueueListener(q, stream_handler)
 listener.start()
 
-logger = logging.getLogger("pywss")
+logger = logging.getLogger("collab")
 logger.setLevel(logging.INFO)
 logger.addHandler(QueueHandler(q))
 

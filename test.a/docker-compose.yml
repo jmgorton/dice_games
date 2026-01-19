@@ -19,8 +19,8 @@ services:
     build: # ./play
       context: .
       dockerfile: Dockerfile.play
-  pywss:
-    build: ./websockc
+  collab:
+    build: ./collab
   nginx:
     image: nginx:latest
     ports:
