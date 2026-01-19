@@ -104,13 +104,13 @@ export function connectWS() {
     if (!browserSupportsWebSockets()) return;
 
     // Let us open a web socket
-    // var ws = new WebSocket("ws://localhost:1313/test");
-    // ws = new WebSocket("ws://localhost:1313/test", "json"); // test = websock (JS) // protocols was json??
-    // ws = new WebSocket("ws://localhost:1313/test");
+    // var ws = new WebSocket("ws://localhost:1313/auth");
+    // ws = new WebSocket("ws://localhost:1313/auth", "json"); // auth = auth (JS) // protocols was json??
+    // ws = new WebSocket("ws://localhost:1313/auth");
     const loc = window.location;
     const protocol = loc.protocol === "https:" ? "wss:" : "ws:";
     const host = loc.host; // ensure the browser connects to the same port nginx is listening on 
-    const websockURL = `${protocol}//${host}/test`; // test = websock (JS) 
+    const websockURL = `${protocol}//${host}/auth`; // auth = auth (JS) 
 
     const socket = new WebSocket(websockURL);
 

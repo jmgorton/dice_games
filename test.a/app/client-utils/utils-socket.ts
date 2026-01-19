@@ -15,7 +15,7 @@ export function getWebSocketUrlByURI(uri: string): string {
     // // uri: 
     // // /collab = collab (Python) 
     // // /play = play (JS) 
-    // // /test = websock (JS) ... NOT a websocket connection yet, just HTTP so far 
+    // // /auth = auth (JS) ... NOT a websocket connection yet, just HTTP so far 
     return URL
 }
 

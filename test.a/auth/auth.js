@@ -34,7 +34,7 @@ const server = http.createServer((req, res) => {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'text/html');
         fs.createReadStream(__dirname + '/index.html').pipe(res);
-    } else if (/^\/test$/.test(req.url)) {
+    } else if (/^\/auth$/.test(req.url)) {
         res.statusCode = 200;
         res.setHeader('Content-Type', 'text/html');
         fs.createReadStream(__dirname + '/index.html').pipe(res);

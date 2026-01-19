@@ -10,11 +10,11 @@ services:
       dockerfile: Dockerfile.app # ./app/Dockerfile
     # depends_on:
     #   - shared
-  websock:
+  auth:
     image: node:latest
     volumes:
-      - ./websock:/opt/app
-    command: node /opt/app/websock.js
+      - ./auth:/opt/app
+    command: node /opt/app/auth.js
   play:
     build: # ./play
       context: .
@@ -29,6 +29,6 @@ services:
       - ./nginx/lb.conf:/etc/nginx/conf.d/lb.conf
     depends_on:
       - app
-      - websock
+      - auth
       - play
       - collab

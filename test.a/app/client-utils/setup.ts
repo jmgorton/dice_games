@@ -93,10 +93,10 @@ document.head.appendChild(style);
 // document.body.style.justifyContent = 'center';
 
 document.addEventListener("DOMContentLoaded", () => {
-    // const routes: string[] = ["/test", "/play", "/pywss"];
-    // const labels: string[] = ["/test (websock) JS", "/play (play) Lotto Sim", "/collab (collab) PY"];
+    // const routes: string[] = ["/auth", "/play", "/pywss"];
+    // const labels: string[] = ["/auth (auth) JS", "/play (play) Lotto Sim", "/collab (collab) PY"];
     const buttonAttrs = [
-        { href: "/test", innerText: "/test (websock) JS" },
+        { href: "/auth", innerText: "/auth (auth) JS" },
         { href: "/play", innerText: "/play (play) Lotto Sim" },
         { href: "/collab", innerText: "/collab (collab) Python" },
     ]
@@ -123,7 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
         },
         "buttonInput": {
             id: "test-ws-login",
-            value: "Connect (/test websock)",
+            value: "Connect (/auth)",
             onclick: connectWS,
             disabled: true,
         },
