@@ -67,9 +67,9 @@ async def echo_handler(websocket):
                 # await websocket.send(f"USERS::{';'.join(userlist)}")
             elif (messageType == "MESSAGE"):
                 for user, ws in userConnections.items():
-                    sentBy = "Unknown User said: "
+                    sentBy = "Unknown User: "
                     if (ws == websocket):
-                        sentBy = f"{user} said: "
+                        sentBy = f"{user}: "
                 newMessage = f"MESSAGE::{sentBy}{messageContent}"
                 sendNewMessageTasks = [userConnections[name].send(newMessage) for name in userlist]
                 await asyncio.gather(*sendNewMessageTasks)

@@ -1,6 +1,6 @@
 import {
     connectPyWSS,
-    connectWS,
+    // connectWS,
     connectPlay,
     send,
     handleKey
@@ -15,53 +15,45 @@ import {
 // // approach 1: expose module functions onto global window scope
 // // window.connectPyWSS = connectPyWSS;
 // // approach 2 (better): remove inline onclick attribute, attach event listener here
-// document.addEventListener("DOMContentLoaded", () => {
-//     // console.log(`Document loaded from utils.js module in browser.`);
-//     const pyLogin = document.getElementById("pywss-login")
-//     if (pyLogin) pyLogin.addEventListener("click", connectPyWSS);
-//     else console.log("Py WS Login Element not found.")
-//     const jswsLogin = document.getElementById("test-ws-login")
-//     if (jswsLogin) jswsLogin.addEventListener("click", connectWS);
-//     else console.log("JS WS Login Element not found.")
-//     const jswsbLogin = document.getElementById("test-wsb-login")
-//     if (jswsbLogin) jswsbLogin.addEventListener("click", connectPlay);
-//     else console.log("JS WSB Login Element not found.")
-// })
 
 document.addEventListener("DOMContentLoaded", async () => {
-    if (document) {
-        const hostnameEl = document.getElementById("hostname")
-        if (hostnameEl) {
-            const hostnameResponse = await fetch('http://localhost:1313/hostname');
-            // hostnameEl.innerText = await hostnameResponse.text();
-            if (hostnameResponse.ok || hostnameResponse.status == 200) {
-                hostnameEl.innerText = await hostnameResponse.text();
-            }
-            // const hostnamePromise = fetch('http://localhost:1313/hostname');
-            // hostnamePromise.then((res: Response) => {
-            //     if (!res || !res.body) return;
-            //     res.body.pipeTo(hostnameEl.innerText as unknown as WritableStream);
-            // })
+    const hostnameEl = document.getElementById("hostname")
+    if (hostnameEl) {
+        const hostnameResponse = await fetch('http://localhost:1313/hostname');
+        // hostnameEl.innerText = await hostnameResponse.text();
+        if (hostnameResponse.ok || hostnameResponse.status == 200) {
+            hostnameEl.innerText = await hostnameResponse.text();
         }
-    } else {
-        console.log("Document not found.");
+        // const hostnamePromise = fetch('http://localhost:1313/hostname');
+        // hostnamePromise.then((res: Response) => {
+        //     if (!res || !res.body) return;
+        //     res.body.pipeTo(hostnameEl.innerText as unknown as WritableStream);
+        // })
     }
 });
 
+let intervalId: number | undefined;
+const uptimeEl = document.getElementById("uptime");
 
-// TODO fix: refreshing breaks this 
+const updateUptime = async () => {
+    if (!uptimeEl) return;
+    // TODO use window.loc or something
+    const uptimeResponse = await fetch('http://localhost:1313/uptime');
+    if (uptimeResponse.status == 200) uptimeEl.innerText = await uptimeResponse.text();
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    await updateUptime();
+    if (intervalId) window.clearInterval(intervalId);
+    intervalId = window.setInterval(updateUptime, 1000);
+})
+
 document.addEventListener('visibilitychange', () => {
-    let intervalId: number | undefined;
+    // let intervalId: number | undefined;
     // only two options are visible/hidden
     if (document.visibilityState === 'visible') {
-        const uptimeEl = document.getElementById("uptime");
-        intervalId = window.setInterval(async () => {
-            if (uptimeEl) {
-                // TODO use window.loc or something
-                const uptimeResponse = await fetch('http://localhost:1313/uptime');
-                if (uptimeResponse.status == 200) uptimeEl.innerText = await uptimeResponse.text();
-            }
-        }, 1000);
+        // const uptimeEl = document.getElementById("uptime");
+        if (!intervalId) intervalId = window.setInterval(updateUptime, 1000);
     }
     else if (document.visibilityState === 'hidden') {
         if (intervalId) clearInterval(intervalId);
@@ -93,12 +85,10 @@ document.head.appendChild(style);
 // document.body.style.justifyContent = 'center';
 
 document.addEventListener("DOMContentLoaded", () => {
-    // const routes: string[] = ["/auth", "/play", "/pywss"];
-    // const labels: string[] = ["/auth (auth) JS", "/play (play) Lotto Sim", "/collab (collab) PY"];
     const buttonAttrs = [
-        { href: "/auth", innerText: "/auth (auth) JS" },
-        { href: "/play", innerText: "/play (play) Lotto Sim" },
-        { href: "/collab", innerText: "/collab (collab) Python" },
+        { href: "/auth", innerText: "/auth (JS)" },
+        { href: "/play", innerText: "/play (JS Lotto Sim)" },
+        { href: "/collab", innerText: "/collab (Python)" },
     ]
     const navButtonDiv = document.getElementById("nav-buttons") as HTMLDivElement;
     navButtonDiv.style.display = "flex";
@@ -107,10 +97,7 @@ document.addEventListener("DOMContentLoaded", () => {
     for (let i = 0; i < 3; i++) {
         const navButton = document.createElement("a");
         Object.assign(navButton, buttonAttrs[i]);
-        // navButton.href = routes[i]!; // why do i have to assert not undefined??
-        // navButton.innerText = labels[i]!; // is it because i might be outside the range? 
         navButton.classList.add("dynamic-link");
-        // navButton.onclick = () => window.clearInterval(intervalId);
         navButtonDiv.appendChild(navButton);
     }
 });
@@ -118,29 +105,29 @@ document.addEventListener("DOMContentLoaded", () => {
 document.addEventListener("DOMContentLoaded", () => {
     const websockButtonAttrs = {
         "textInput": {
-            id: "name-ws",
-            disabled: true,
+            id: "name-auth",
+            // disabled: true,
         },
         "buttonInput": {
-            id: "test-ws-login",
+            id: "auth-login",
             value: "Connect (/auth)",
-            onclick: connectWS,
-            disabled: true,
+            // onclick: connectWS,
+            // disabled: true,
         },
     };
     const playWsButtonAttrs = {
         "textInput": {
-            id: "name",
+            id: "name-play",
         },
         "buttonInput": {
-            id: "test-wsb-login",
+            id: "play-login",
             value: "Connect (/play)",
             onclick: connectPlay,
         },
     };
     const pyWsButtonAttrs = {
         "textInput": {
-            id: "namePy",
+            id: "name-collab",
         },
         "buttonInput": {
             id: "collab-login",
@@ -171,7 +158,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const textInput = Object.assign(document.createElement("input"), buttonAttrs[i]["textInput"]);
         Object.assign(textInput, commonAttrs["textInput"]);
         loginInput.append(textInput); // append vs appendChild?? 
-        const buttonInput = Object.assign(document.createElement("input"), buttonAttrs[i]["buttonInput"]); // button? or input type=button?
+        const buttonInput = Object.assign(document.createElement("input"), buttonAttrs[i]["buttonInput"]);
         Object.assign(buttonInput, commonAttrs["buttonInput"]);
         loginInput.append(buttonInput);
         loginButtonDiv.appendChild(loginInput);
@@ -182,7 +169,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const chatInputText = document.getElementById("text") as HTMLInputElement;
     chatInputText.type = "text";
     chatInputText.name = "text";
-    // chatInputText.size = 80;
     chatInputText.maxLength = 512;
     chatInputText.placeholder = "Say something...";
     chatInputText.autocomplete = "on";

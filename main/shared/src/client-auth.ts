@@ -14,10 +14,8 @@ class DiceGamesAuth {
 
     /**
      * Login with password and store token
-     * @param {string} password 
-     * @returns {Promise<string>} The auth token
      */
-    async login(password: string) {
+    async login(password: string): Promise<string> {
         try {
             const response = await fetch(`${this.authServerUrl}/auth/login`, {
                 method: 'POST',
@@ -49,9 +47,8 @@ class DiceGamesAuth {
 
     /**
      * Logout and revoke token
-     * @returns {Promise<boolean>}
      */
-    async logout() {
+    async logout(): Promise<boolean> {
         if (!this.token) return false;
 
         try {
@@ -75,9 +72,8 @@ class DiceGamesAuth {
 
     /**
      * Get current token
-     * @returns {string|null}
      */
-    getToken() {
+    getToken(): string | null {
         return this.token;
     }
 
@@ -85,7 +81,7 @@ class DiceGamesAuth {
      * Create headers with auth token
      * @returns {object} Headers object
      */
-    getAuthHeaders() {
+    getAuthHeaders(): object { // object? Headers? OutgoingHttpHeaders? 
         return {
             'Authorization': `Bearer ${this.token}`
         };
@@ -93,11 +89,8 @@ class DiceGamesAuth {
 
     /**
      * Make authenticated fetch request
-     * @param {string} url 
-     * @param {object} options 
-     * @returns {Promise<Response>}
      */
-    async authenticatedFetch(url: string, options = { headers: {} }) {
+    async authenticatedFetch(url: string, options = { headers: {} }): Promise<Response> {
         if (!this.token) {
             throw new Error('Not authenticated. Call login() first.');
         }
@@ -120,10 +113,8 @@ class DiceGamesAuth {
 
     /**
      * Create WebSocket with auth token
-     * @param {string} wsUrl 
-     * @returns {WebSocket}
      */
-    createAuthenticatedWebSocket(wsUrl: string) {
+    createAuthenticatedWebSocket(wsUrl: string): WebSocket {
         if (!this.token) {
             throw new Error('Not authenticated. Call login() first.');
         }
@@ -139,9 +130,8 @@ class DiceGamesAuth {
 
     /**
      * Check if authenticated
-     * @returns {boolean}
      */
-    isAuthenticated() {
+    isAuthenticated(): boolean {
         return !!this.token;
     }
 }

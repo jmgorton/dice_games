@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url';
 
 // import { URITree } from '@shared/types.js'
 import { URITree } from '../shared/dist/types.js'
+import { setupHttpServerEventHandlers } from '../shared/dist/server-setup.js';
 import {
     getHostname,
     getUptime,
@@ -55,16 +56,17 @@ const routeHandler = new URITree({
 // including index.html, utils.ts, and utils-socket.ts to the 
 // client, those assets are served on subsequent requests
 
-const server = http.createServer((req, res) => {
-    // function createServer<typeof http.IncomingMessage, typeof http.ServerResponse>
-    // (requestListener?: 
-    //  http.RequestListener<typeof http.IncomingMessage, typeof http.ServerResponse> | undefined): 
-    //  http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>
-    // req = http.IncomingMessage
-    // res = http.ServerResponse 
+// const server = http.createServer((req, res) => {
+//     // function createServer<typeof http.IncomingMessage, typeof http.ServerResponse>
+//     // (requestListener?: 
+//     //  http.RequestListener<typeof http.IncomingMessage, typeof http.ServerResponse> | undefined): 
+//     //  http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>
+//     // req = http.IncomingMessage
+//     // res = http.ServerResponse 
 
-    routeHandler.handleRequest(req, res);
-});
+//     routeHandler.handleRequest(req, res);
+// });
+const server = setupHttpServerEventHandlers(http.createServer(), routeHandler);
 
 server.listen(port, hostname, () => {
     console.log(`Server running at http://${hostname}:${port}/ :)`);

@@ -20,9 +20,8 @@ function generateToken() {
 
 /**
  * Create a new token and store it
- * @returns {string} The generated token
  */
-export function createToken() {
+export function createToken(): string {
     const token = generateToken();
     tokenStore.set(token, {
         createdAt: new Date(),
@@ -33,10 +32,8 @@ export function createToken() {
 
 /**
  * Validate if a token exists and is active
- * @param {string} token - The token to validate
- * @returns {boolean} True if token is valid
  */
-export function validateToken(token: string) {
+export function validateToken(token: string): boolean {
     if (!token || typeof token !== 'string') {
         return false;
     }
@@ -45,7 +42,6 @@ export function validateToken(token: string) {
 
 /**
  * Update the last activity time for a token
- * @param {string} token - The token to update
  */
 export function updateTokenActivity(token: string) {
     if (tokenStore.has(token)) {
@@ -56,10 +52,8 @@ export function updateTokenActivity(token: string) {
 
 /**
  * Revoke (delete) a token
- * @param {string} token - The token to revoke
- * @returns {boolean} True if token existed and was revoked
  */
-export function revokeToken(token: string) {
+export function revokeToken(token: string): boolean {
     return tokenStore.delete(token);
 }
 
@@ -68,7 +62,7 @@ export function revokeToken(token: string) {
  * @param {string} token - The token to query
  * @returns {object|null} Session metadata or null if not found
  */
-export function getTokenInfo(token: string) {
+export function getTokenInfo(token: string): object | null {
     return tokenStore.get(token) || null;
 }
 
@@ -76,7 +70,7 @@ export function getTokenInfo(token: string) {
  * Get all active tokens (for debugging/monitoring)
  * @returns {array} Array of token strings
  */
-export function getAllTokens() {
+export function getAllTokens(): string[] {
     return Array.from(tokenStore.keys());
 }
 

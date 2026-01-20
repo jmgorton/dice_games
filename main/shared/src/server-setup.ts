@@ -5,27 +5,13 @@ import fs from 'fs';
 import WebSocket, { WebSocketServer } from 'ws';
 import { Stream } from 'stream';
 
-import {
-    connectionArray, // TODO research how importing an array works ... can't assign, but can manipulate it seems 
-    originIsAllowed,
-    isUsernameUnique,
-    getConnectionForID,
-    // makeUserListMessage,
-    sendUserListToAll,
-} from './helpers.js'
-
-import { __dirname } from '../server.js';
-import { URITree } from '../../shared/dist/types.js';
-import { validateToken, updateTokenActivity } from '../../shared/dist/token-store.js';
-
-// var connectionArray: any[] = []; // TODO remove, use wss.clients and if (client.readyState === WebSocket.OPEN)
-// See: https://www.npmjs.com/package/ws # Server broadcast 
-// var nextID = Date.now();
-// const ip = req.socket.remoteAddress; to get ip of client...
-// "When the server runs behind a proxy like NGINX, the de-facto standard
-// is to use the X-Forwarded-For header."
-// const ip = req.headers['x-forwarded-for'].split(',')[0].trim();
-var appendToMakeUnique = 1;
+import { URITree } from './types.js';
+import type { 
+    WebSocketEvents, 
+    WebSocketEventListenerMap, 
+    WebSocketServerEvents, 
+    WebSocketServerEventListenerMap 
+} from './types.js';
 
 // Two main categories of events (and listeners): those on the WebSocketServer instance 
 //      and those on the individual WebSocket connection instances. 
@@ -45,27 +31,95 @@ var appendToMakeUnique = 1;
 //          pong: Fired when a pong frame is received, usually in response to a ping. 
 // See: https://www.npmjs.com/package/ws
 
-// what in the python self syntax ... but i'll continue, 
-// it's in the spec and `this` is not allowed here 
-function wssOnClose (this: WebSocketServer) {
+
+// ********* default web socket event listeners *************
+
+// TODO hmmm... might have to move these back inside the defaultWssOnConnection method
+// if we have to access the websocket server for some of these 
+// or could pass it as an optional argument as a kind of way to attach them 
+
+export function defaultWsOnOpen (this: WebSocket) {
+    // implicitly handled server-side 
+};
+
+export function defaultWsOnRedirect (this: WebSocket, url: string, request: http.ClientRequest) {
+
+}
+
+// this is an event that should (maybe) be bound to the http server ... as well? or instead? 
+// i guess both servers might do something different on this event 
+export function defaultWsOnUpgrade (this: WebSocket, request: http.IncomingMessage) {
+
+}
+
+export function defaultWsOnError (this: WebSocket, error: Error) {
+
+}
+
+export function defaultWsOnUnexpectedResponse (this: WebSocket, request: http.ClientRequest, response: http.IncomingMessage) {
+
+}
+
+export function defaultWsOnPing (this: WebSocket, data: Buffer) {
+
+}
+
+export function defaultWsOnPong (this: WebSocket, data: Buffer) {
+
+}
+
+export function defaultWsOnMessage (this: WebSocket, data: WebSocket.RawData, isBinary: boolean) {
+        
+}
+
+export const defaultWsOnClose = (code: number, reason: Buffer) => {
+    // // connectionArray = connectionArray.filter(function (el, idx, ar) {
+    // //     return el.connected;
+    // // });
+    // const toRemoveIndex = connectionArray.findIndex(el => !el.connected);
+    // connectionArray.splice(toRemoveIndex, 1);
+    // sendUserListToAll();  // Update the user lists
+    // console.log((new Date()) + " Peer " + connection.remoteAddress + " disconnected.");
+}
+
+export const defaultWebSocketListeners = {
+    'open': defaultWsOnOpen,
+    'redirect': defaultWsOnRedirect,
+    'upgrade': defaultWsOnUpgrade,
+    'error': defaultWsOnError,
+    'unexpected-response': defaultWsOnUnexpectedResponse,
+    'ping': defaultWsOnPing,
+    'pong': defaultWsOnPong,
+    'message': defaultWsOnMessage,
+    'close': defaultWsOnClose,
+}
+
+// // ********** default websocket server event listeners ************** 
+
+export function defaultWssOnClose (this: WebSocketServer) {
 
 };
 
-function wssOnError (this: WebSocketServer, error: Error) {
+export function defaultWssOnError (this: WebSocketServer, error: Error) {
 
 };
 
-function wssOnHeaders (this: WebSocketServer, headers: string[], request: http.IncomingMessage) {
+export function defaultWssOnHeaders (this: WebSocketServer, headers: string[], request: http.IncomingMessage) {
 
 };
 
-function wssOnWsClientError (this: WebSocketServer, error: Error, socket: Stream.Duplex, request: http.IncomingMessage) {
+export function defaultWssOnWsClientError (this: WebSocketServer, error: Error, socket: Stream.Duplex, request: http.IncomingMessage) {
 
 };
 
-
-
-function wssOnConnection(this: WebSocketServer, ws: WebSocket, request: http.IncomingMessage) {
+export function defaultWssOnConnection(
+    this: WebSocketServer, 
+    ws: WebSocket, 
+    request: http.IncomingMessage,
+    wsListeners?: {
+        [K in keyof WebSocketEventListenerMap]?: WebSocketEventListenerMap[K];
+    }
+) {
 
     // properties i see in index.d.mts (drill into wss.on)
     // wss.options: WebSocket.ServerOptions<T, U>;
@@ -91,198 +145,60 @@ function wssOnConnection(this: WebSocketServer, ws: WebSocket, request: http.Inc
     //      ) => void
     // ): WebSocket (+8 overloads)
 
-    ws.on('open', function (this: WebSocket) {
-        // implicitly handled server-side 
-    });
+    // ws.on('open', defaultWsOnOpen);
+    // ws.on('redirect', defaultWsOnRedirect);
+    // ws.on('upgrade', defaultWsOnUpgrade);
+    // ws.on('error', defaultWsOnError);
+    // ws.on('unexpected-response', defaultWsOnUnexpectedResponse);
+    // ws.on('ping', defaultWsOnPing);
+    // ws.on('pong', defaultWsOnPong);
+    // ws.on('message', defaultWsOnMessage)
+    // ws.on('close', defaultWsOnClose);
 
-    ws.on('redirect', function (this: WebSocket, url: string, request: http.ClientRequest) {
-
-    });
-
-    // this is an event that should (maybe) be bound to the http server ... as well? or instead? 
-    // i guess both servers might do something different on this event 
-    ws.on('upgrade', function (this: WebSocket, request: http.IncomingMessage) {
-
-    });
-
-    ws.on('error', function (this: WebSocket, error: Error) {
-
-    });
-
-    ws.on('unexpected-response', function (this: WebSocket, request: http.ClientRequest, response: http.IncomingMessage) {
-
-    });
-
-    ws.on('ping', function (this: WebSocket, data: Buffer) {
-
-    });
-
-    ws.on('pong', function (this: WebSocket, data: Buffer) {
-        
-    });
-
-    ws.on('message', function (this: WebSocket, data: WebSocket.RawData, isBinary: boolean) {
-        let message = data;
-        console.log(`DATA: ${data}`);
-        try {
-            message = JSON.parse(data.toString());
-            console.log(`MESSAGE: ${message}`)
-        } catch (err: any) {
-            if (err instanceof SyntaxError) {
-                console.warn('Message was not parsable');
-            }
-        }
-        // if (message.type === 'utf8') {
-        //     console.log("Received Message: " + message.utf8Data);
-
-        //     // Process messages
-        //     var sendToClients = true;
-        //     msg = JSON.parse(message.utf8Data);
-        //     var connect = getConnectionForID(msg.id);
-        //     if (!connect || !('name' in msg)) return;
-
-        //     // Look at the received message type and
-        //     // handle it appropriately.
-        //     switch (msg.type) {
-        //         // Public text message in the chat room
-        //         case "message":
-        //             if (!('text' in msg)) return;
-        //             msg.name = connect.username;
-        //             msg.text = (msg.text as string).replace(/(<([^>]+)>)/ig, "");
-        //             break;
-
-        //         // Username change request
-        //         case "username":
-        //             var nameChanged = false;
-        //             var origName = msg.name;
-
-        //             // Force a unique username by appending
-        //             // increasing digits until it's unique.
-        //             while (!isUsernameUnique(msg.name as string)) {
-        //                 msg.name = origName as string + appendToMakeUnique;
-        //                 appendToMakeUnique++;
-        //                 nameChanged = true;
-        //             }
-
-        //             // If the name had to be changed, reject the
-        //             // original username and let the other user
-        //             // know their revised name.
-        //             if (nameChanged) {
-        //                 var changeMsg = {
-        //                     id: msg.id,
-        //                     type: "rejectusername",
-        //                     name: msg.name
-        //                 };
-        //                 connect.sendUTF(JSON.stringify(changeMsg));
-        //             }
-
-        //             connect.username = msg.name;
-        //             sendUserListToAll();
-        //             break;
-        //     }
-
-        //     // Convert the message back to JSON and send it out
-        //     // to all clients.
-        //     if (sendToClients) {
-        //         var msgString = JSON.stringify(msg);
-        //         var i;
-
-        //         for (i = 0; i < connectionArray.length; i++) {
-        //             connectionArray[i].sendUTF(msgString);
-        //         }
-        //     }
-        // }
-    })
-
-    ws.on('close', (code: number, reason: Buffer) => {
-        // // connectionArray = connectionArray.filter(function (el, idx, ar) {
-        // //     return el.connected;
-        // // });
-        // const toRemoveIndex = connectionArray.findIndex(el => !el.connected);
-        // connectionArray.splice(toRemoveIndex, 1);
-        // sendUserListToAll();  // Update the user lists
-        // console.log((new Date()) + " Peer " + connection.remoteAddress + " disconnected.");
-    });
+    if (!wsListeners) wsListeners = defaultWebSocketListeners;
+    for (const wsEventType of Object.keys(defaultWebSocketListeners)) {
+        const wsEventTypeKey = wsEventType as WebSocketEvents;
+        ws.on(wsEventType, wsListeners[wsEventTypeKey] ?? defaultWebSocketListeners[wsEventTypeKey])
+    }
 };
 
-const wssOnConnectionOld = function (this: WebSocketServer, ws: WebSocket, request: http.IncomingMessage) {
+export const defaultWebSocketServerListeners = {
+    'close': defaultWssOnClose,
+    'error': defaultWssOnError,
+    'connection': defaultWssOnConnection,
+    'headers': defaultWssOnHeaders,
+    'wsClientError': defaultWssOnWsClientError,
+}
 
-    ws.on('message', function (message: any) { // TODO type this later ???
-        console.log("***MESSAGE: %s", message);
-        ws.send(`Server received: ${message}`);
-        if (message.type === 'utf8') {
-            console.log("Received Message: " + message.utf8Data);
+export const setupWebSocketEventHandlers = (
+    wss: WebSocketServer,
+    wssListeners?: {
+        [K in keyof WebSocketServerEventListenerMap]?: WebSocketServerEventListenerMap[K] | WebSocketServerEventListenerMap[K][];
+    }
+): WebSocketServer => {
+    // wss.on('close', () => defaultWssOnClose.call(wss));
+    // wss.on('error', (error: Error) => defaultWssOnError.call(wss, error));
+    // wss.on('connection', (ws: WebSocket, request: http.IncomingMessage) => defaultWssOnConnection.call(wss, ws, request));
+    // wss.on('headers', defaultWssOnHeaders);
+    // wss.on('wsClientError', defaultWssOnWsClientError);
 
-            // Process messages
-            var sendToClients = true;
-            let msg: any = JSON.parse(message.utf8Data);
-            var connect = getConnectionForID(msg.id);
-
-            // Look at the received message type and
-            // handle it appropriately.
-            switch (msg.type) {
-                // Public text message in the chat room
-                case "message":
-                    msg.name = connect.username;
-                    msg.text = msg.text.replace(/(<([^>]+)>)/ig, "");
-                    break;
-
-                // Username change request
-                case "username":
-                    var nameChanged = false;
-                    var origName = msg.name;
-
-                    // Force a unique username by appending
-                    // increasing digits until it's unique.
-                    while (!isUsernameUnique(msg.name)) {
-                        msg.name = origName + appendToMakeUnique;
-                        appendToMakeUnique++;
-                        nameChanged = true;
-                    }
-
-                    // If the name had to be changed, reject the
-                    // original username and let the other user
-                    // know their revised name.
-                    if (nameChanged) {
-                        var changeMsg = {
-                            id: msg.id,
-                            type: "rejectusername",
-                            name: msg.name
-                        };
-                        connect.sendUTF(JSON.stringify(changeMsg));
-                    }
-
-                    connect.username = msg.name;
-                    sendUserListToAll();
-                    break;
+    if (!wssListeners) wssListeners = defaultWebSocketServerListeners;
+    for (const wsEventType of Object.keys(defaultWebSocketListeners)) {
+        const wsEventTypeKey = wsEventType as WebSocketServerEvents;
+        if (Array.isArray(wssListeners[wsEventTypeKey])) {
+            for (const wssListener of wssListeners[wsEventTypeKey]) {
+                wss.on(wsEventType, wssListener)
             }
-
-            // Convert the message back to JSON and send it out
-            // to all clients.
-            if (sendToClients) {
-                var msgString = JSON.stringify(msg);
-                var i;
-
-                for (i = 0; i < connectionArray.length; i++) {
-                    connectionArray[i].sendUTF(msgString);
-                }
-            }
+        } else {
+            wss.on(wsEventType, wssListeners[wsEventTypeKey] ?? defaultWebSocketServerListeners[wsEventTypeKey])
         }
-    });
+    }
+    return wss;
 };
 
+// // ******************* HTTP Logic ******************
 
-// const setupWebSocketEventHandlers = (wss: WebSocketServer) => {
-//     wss.on('close', () => wssOnClose.call(wss));
-//     wss.on('error', (error: Error) => wssOnError.call(wss, error));
-//     wss.on('connection', (ws: WebSocket, request: http.IncomingMessage) => wssOnConnection.call(wss, ws, request));
-//     wss.on('connection', (ws: WebSocket, request: http.IncomingMessage) => wssOnConnectionOld.call(wss, ws, request));
-//     wss.on('headers', wssOnHeaders);
-//     // wss.on('request', wssOnRequestFIXTHIS); // does this even do anything?? no
-//     return wss;
-// };
-
-// ******* Creating a very simple middle-ware stack to emulate basic features from other frameworks like Express ********
+// // ******* Creating a very simple middle-ware stack to emulate basic features from other frameworks like Express ********
 
 const logger = (request: http.IncomingMessage, response: http.ServerResponse, next: (err?: Error) => void) => {
     console.log(`[${new Date().toISOString()}] ${request.method} ${request.url} from Origin: ${request.headers.origin}`);
@@ -292,7 +208,7 @@ const logger = (request: http.IncomingMessage, response: http.ServerResponse, ne
 const validator = (request: http.IncomingMessage, response: http.ServerResponse, next: (err?: Error) => void) => {
     // console.log("Handling request from " + request.headers.origin);
     if (!request || !request.method || !request.url) return; 
-    // ping? what would this situation possibly be? 
+    // what would this situation possibly be? ping, idts??
 
     // The origin property doesn't exist directly on Node.js's built-in http.IncomingMessage 
     //  because it's a low-level stream representing raw HTTP data; you'll find origin information 
@@ -301,12 +217,12 @@ const validator = (request: http.IncomingMessage, response: http.ServerResponse,
     //  like .query, .body, or origin. To get the origin, access req.headers.origin (for CORS) 
     //  or req.headers.host and parse the URL, or use a framework for easier access. 
 
-    if (!originIsAllowed(request.headers.origin)) {
-        // // request.reject();
-        // console.log("Connection from " + request.headers.origin + " rejected.");
-        // return;
-        return next(new Error(`Rejected request from ${request.headers.origin}.`));
-    }
+    // if (!originIsAllowed(request.headers.origin)) {
+    //     // // request.reject();
+    //     // console.log("Connection from " + request.headers.origin + " rejected.");
+    //     // return;
+    //     return next(new Error(`Rejected request from ${request.headers.origin}.`));
+    // }
     return next();
 }
 
@@ -343,26 +259,17 @@ const errorHandler = (err: Error, request: http.IncomingMessage, response: http.
 
 const middlewareStack = [logger, validator, authenticator];
 
-export function getHostname(req: http.IncomingMessage, res: http.ServerResponse): void {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'plaintext');
-    res.end(os.hostname());
-}
+// // ********** functions to facilitate the handling of requests after they've passed through the middleware ************** 
 
-const utilFilepathMatcher = /^\/play\/((?:setup|lotto-utils)\.[jt]s(?:\.map)?)$/;
+const utilFilepathMatcher = /^\/$/;
 
-export function serveStaticFile(req: http.IncomingMessage, res: http.ServerResponse, staticFilename?: string): void {
+// TODO pass __dirname in as Server arg ... 
+
+export function serveStaticFile(req: http.IncomingMessage, res: http.ServerResponse, staticFilename?: string, staticFilepath?: string): void {
     if (!staticFilename) {
         const fileMatcher = utilFilepathMatcher;
         const parsedRequestURL = req.url?.match(fileMatcher);
         if (!parsedRequestURL || !parsedRequestURL[1]) {
-            // if (req.url === '/play' && req.method === 'GET') {
-            //     staticFilename = 'index.html'
-            // } else {
-            //     // console.log(`No match for ${parsedRequestURL}`);
-            //     res.writeHead(404, { "content-type": "application/json" });
-            //     res.end(JSON.stringify({ error: 'Not Found' }));
-            // }
             // set staticFilename as index.html and try to serve it, 
             // it'll throw 404 anyway if not there... we can add this to the URITree class 
             // TODO use the request URL as a second subpath for potential nested index.htmls ??
@@ -374,7 +281,6 @@ export function serveStaticFile(req: http.IncomingMessage, res: http.ServerRespo
 
     res.statusCode = 200;
     let subpath = '';
-    if (!staticFilename) staticFilename = 'index.html';
     if (staticFilename.endsWith('.html')) {
         res.setHeader('Content-Type', 'text/html');
     } else if (staticFilename.endsWith('.js') || staticFilename.endsWith('.ts') || staticFilename.endsWith('.map')) {
@@ -389,7 +295,7 @@ export function serveStaticFile(req: http.IncomingMessage, res: http.ServerRespo
         return;
     }
     // fs.createReadStream(__dirname + '/index.html').pipe(res);
-    const readStream = fs.createReadStream(__dirname + subpath + '/' + staticFilename);
+    const readStream = fs.createReadStream((staticFilepath ?? __dirname) + subpath + '/' + staticFilename);
 
     readStream.on('error', (err) => {
         console.error(err);
@@ -415,26 +321,34 @@ export function serveStaticFile(req: http.IncomingMessage, res: http.ServerRespo
         readStream.push(null);
         readStream.read(0);
     }, 100);
-}
+};
 
-export const routeHandler = new URITree({
-    route: '/play',
+const routeHandler = new URITree({
+    route: '/',
     availableAssetsAtRoute: utilFilepathMatcher,
     assetServerHandler: serveStaticFile,
     handlerMap: {
         "GET": serveStaticFile,
-    },
-    childRoutes: {
-        'hostname': new URITree({
-            route: '/play/hostname',
-            handlerMap: {
-                "GET": getHostname,
-            }
-        })
     }
 })
 
-const httpServerOnRequest = (request: http.IncomingMessage, response: http.ServerResponse<http.IncomingMessage> & { req: http.IncomingMessage; }) => {
+// // ********** default http event listeners ************** 
+
+// // ************** passes requests through the middleware logic before attempting to serve ***************
+
+// needs host and port ... 
+const httpServerOnListen = () => {
+
+}
+
+const httpServerOnRequest = (
+    request: http.IncomingMessage, 
+    response: http.ServerResponse<http.IncomingMessage> & { req: http.IncomingMessage; },
+    options?: {
+        routeHandler?: URITree | undefined,
+        // __dirname?: string,
+    }
+) => {
     // console.log(`HTTP Server on request: ${request.url}`);
     // putting similar logic to wssOnRequestFIXTHIS in here... actually can't really do that 
     // but refactoring and creating a middleware stack, loosely based on 
@@ -452,7 +366,7 @@ const httpServerOnRequest = (request: http.IncomingMessage, response: http.Serve
             middlewareStack[index++]!(request, response, next); 
         } else {
             // console.log(`About to handle request after middleware executed.`);
-            routeHandler.handleRequest(request, response);
+            (options?.routeHandler ?? routeHandler).handleRequest(request, response);
         }
     }
     next();
@@ -510,12 +424,37 @@ const httpServerOnUpgrade = (req: http.IncomingMessage, socket: Stream.Duplex, h
 //      If you are using the same server instance for both, you should handle standard HTTP requests 
 //      using the request event and the WebSocket upgrade requests using the upgrade event."
     
+// import ServerEventMap from 'http';
+// interface httpListeners {
+//     [K in keyof ServerEventMap]: ServerEventMap[K];
+// }
 
-const setupHttpServerEventHandlers = (server: http.Server) => {
+export const setupHttpServerEventHandlers = (
+    server: http.Server,
+    // handlers?: ,
+    routeHandler?: URITree,
+) => {
     // console.log(`Setting up http server event handlers...`);
     // http.Server.on(eventName: keyof http.ServerEventMap<typeof http.IncomingMessage, typeof http.ServerResponse>
-    server.on('request', httpServerOnRequest)
+    // server.on('listening', httpServerOnListen);
+    server.on('request', (
+        request: http.IncomingMessage, 
+        response: http.ServerResponse
+    ) => httpServerOnRequest(request, response, { routeHandler }))
     // server.on('upgrade', httpServerOnUpgrade)
     // console.log(`Set up server with event listeners...`);
     return server;
 }
+
+// // simple wrapper class to set default options/listeners used across this project 
+// export class Server {
+//     wsServer: WebSocketServer;
+//     httpServer: http.Server;
+
+
+//     constructor(options: any) {
+//         // Object.assign(this, this.defaults);
+//         this.wsServer = options.wss ?? setupWebSocketEventHandlers(new WebSocketServer());
+//         this.httpServer = options.httpServer ?? setupHttpServerEventHandlers()
+//     }
+// }
