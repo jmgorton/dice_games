@@ -1,7 +1,7 @@
 // "use strict";
 // not necessary when moving from CommonJS to ES modules
 // because ES modules are strict by default
-
+// import WebSocket, { WebSocketServer } from 'ws';
 
 // transpile .ts files to .js, import .js from the browser 
 import { 
@@ -82,8 +82,11 @@ const pyWsEventHandlers = { // type annotations TODO
     'message': pyOnMessage,
 }
 
-const ws: WebSocket[] = [];
-var clientID: number = 0;
+// const ws: WebSocket[] = [];
+// var clientID: number = 0;
+const connections: {
+    [key: string]: WebSocket;
+} = {};
 
 export function connectPyWSS() {
     if (!browserSupportsWebSockets()) return;
@@ -98,7 +101,7 @@ export function connectPyWSS() {
 
     if (!socket) return;
 
-    ws.push(socket);
+    // ws.push(socket);
 
 }
 
@@ -133,6 +136,7 @@ function jsOnOpen (this: WebSocket, event: Event) {
     if (!nameEl) return;
     const name = (nameEl as HTMLInputElement).value;
     this.send(`OPEN::${name}`); 
+    this.send(JSON.stringify({ type: "OPEN", username: name }))
     // in the context of this function, `this` should refer to WebSocket 
     enableChatInput();
 }
@@ -156,35 +160,42 @@ function jsOnMessage(this: WebSocket, evt: MessageEvent<any>) {
 
         if ('type' in msg) {
             switch (msg.type) {
-                // case "id":
-                //     clientID = msg.id;
-                //     setUsername();
-                //     break;
+                case "id":
+                    // clientID = msg.id;
+                    connections[msg.id] = this;
+                    // setUsername();
+                    break;
                 case "username":
-                    text = "<b>User <em>" + msg.name + "</em> signed in at " + timeStr + "</b><br>";
+                    // text = "<b>User <em>" + msg.name + "</em> signed in at " + timeStr + "</b><br>";
+                    updateUserlistBox(msg.userlist);
                     break;
                 case "message":
                     text = "(" + timeStr + ") <b>" + msg.name + "</b>: " + msg.text + "<br>";
                     addChatMessageToChatBox(text);
                     break;
-                case "rejectusername":
-                    text = "<b>Your username has been set to <em>" + msg.name + "</em> because the name you chose is in use.</b><br>";
-                    break;
+                // case "rejectusername":
+                //     text = "<b>Your username has been set to <em>" + msg.name + "</em> because the name you chose is in use.</b><br>";
+                //     break;
                 case "userlist":
-                    var ul = "";
-                    var i;
+                    // var ul = "";
+                    // var i;
 
-                    for (i = 0; i < msg.users.length; i++) {
-                        ul += msg.users[i] + "<br>";
-                    }
-                    const userlistEl = document.getElementById("userlistbox");
-                    if (userlistEl) userlistEl.innerHTML = ul;
+                    // for (i = 0; i < msg.users.length; i++) {
+                    //     ul += msg.users[i] + "<br>";
+                    // }
+                    // const userlistEl = document.getElementById("userlistbox");
+                    // if (userlistEl) userlistEl.innerHTML = ul;
+                    // break;
+                    updateUserlistBox(msg.users ?? msg.userlist);
                     break;
             }
+        } else {
+            console.log(`Could not find type in parsed message: ${msg}`);
         }
-    } catch (err: unknown) { // type must be unknown or any in catch block 
+    } catch (err: any) { // type must be unknown or any in catch block 
         if (err instanceof SyntaxError) {
-
+            // console.log(err);
+            console.log(`Could not parse message from server: ${evt.data}`);
         }
     }
 
@@ -222,7 +233,7 @@ export function connectPlay() {
     });
     if (!socket) return;
 
-    ws.push(socket);
+    // ws.push(socket);
 }
 
 // function setUsername() {
@@ -241,26 +252,27 @@ export function connectPlay() {
 //     }
 // }
 
-export function send() {
-    if (!ws) {
-        console.error("WebSocket connection is null. Can't send message.");
+export function sendMessage() {
+    // if (!ws) {
+    if (!connections) {
+        console.error("(All) WebSocket connection(s) is (are) null. Can't send message.");
     }
 
     const textEl: HTMLInputElement | null = document.getElementById("text") as HTMLInputElement
-    if (!textEl || !ws) return;
+    if (!textEl) return;
     var msg = {
         text: textEl.value,
         type: "message",
-        id: clientID,
+        // id: clientID,
         date: Date.now()
     };
     console.log("***SEND: " + JSON.stringify(msg));
 
     // ws.send(`MESSAGE::${JSON.stringify(msg)}`);
     // ws.send(`MESSAGE::${textEl.value}`);
-    for (const conn of ws) {
+    for (const [clientId, conn] of Object.entries(connections)) {
         conn.send(`MESSAGE::${textEl.value}`);
-        conn.send(JSON.stringify(msg));
+        conn.send(JSON.stringify({ ...msg, id: clientId }));
     }
     textEl.value = "";
 }
@@ -270,7 +282,7 @@ export function handleKey(evt: any) {
         const sendEl = document.getElementById("send");
         // const sendEl = evt.currentTarget ?? 
         if (sendEl && sendEl instanceof HTMLButtonElement && !sendEl.disabled) {
-            send();
+            sendMessage();
         }
     }
 }

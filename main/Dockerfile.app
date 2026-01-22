@@ -42,6 +42,7 @@ RUN npm install --production
 # The 'dist' directory is commonly used as the output directory
 COPY --from=base /usr/src/app/dist ./
 COPY --from=base /usr/src/shared/dist ../shared/dist
+COPY --from=base /usr/src/shared/node_modules ../shared/node_modules
 COPY app/index.html ./
 
 # VOLUME [ "/app" ]

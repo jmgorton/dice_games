@@ -2,7 +2,7 @@ import {
     connectPyWSS,
     // connectWS,
     connectPlay,
-    send,
+    sendMessage,
     handleKey
 } from './utils.js'
 // import { uptime } from 'process';
@@ -178,7 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
     chatInputSend.type = "button";
     chatInputSend.name = "send";
     chatInputSend.value = "Send";
-    chatInputSend.onclick = send;
+    chatInputSend.onclick = sendMessage;
     chatInputSend.disabled = true;
 })
 

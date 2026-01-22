@@ -2,7 +2,7 @@ import http from 'http';
 import { WebSocketServer } from 'ws';
 
 import { URITree } from './src/types.js';
-import type { URITreeData, HTTPMethod } from './src/types.js'
+// import type { URITreeData, HTTPMethod } from './src/types.js'
 // import { setupWebSocketEventHandlers } from './server-utils/event-handlers.js';
 
 const protocol = 'http';
@@ -23,7 +23,7 @@ const uriBase = '/play';
 const handlerTree = new URITree({
     route: '/', // /^common/,
     availableAssetsAtRoute: /^\/shared\//,
-    assetServerHandler: () => {},
+    // assetServerHandler: () => {},
 })
 
 const server = http.createServer((req, res) => {

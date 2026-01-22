@@ -94,33 +94,55 @@ export function getSocketWithListenersByURL(
     //      type: "open", 
     //      listener: (this: WebSocket, ev: Event) => any, options?: boolean | AddEventListenerOptions | undefined): void (+1 overload)
 
-    
-    if (listeners && 'open' in listeners) {
-        socket.addEventListener('open', listeners['open']);
-    } else {
-        socket.addEventListener('open', function (event) {
-            console.log('Connected to server');
-            socket.send('`socket` says Hello Server!');
-            this.send('`this` says Hello Server!');
-        });
-    }
-    
+
     // if (!listeners) listeners = defaultWsHandlers;
     // for (const event of Object.keys(listeners)) {
-    //     const eventKey = event as keyof WebSocketEventMap;
-    //     socket.addEventListener(eventKey, listeners[eventKey] ?? defaultWsHandlers[eventKey])
+    //      const eventKey = event as keyof WebSocketEventMap;
+    //      socket.addEventListener(eventKey, listeners[eventKey] ?? defaultWsHandlers[eventKey]);
     // }
 
+    const allHandlers = { ...defaultWsHandlers, ...listeners };
+    
+    for (const event of Object.keys(allHandlers) as Array<keyof WebSocketEventMap>) {
+        const handler = allHandlers[event];
+        if (handler) {
+            socket.addEventListener(event, handler as any);
+        }
+    }
+
+    // const eventTypes: Array<keyof WebSocketEventMap> = ['open', 'message', 'close', 'error'];
+    // const allHandlers = { ...defaultWsHandlers, ...listeners };
+    
+    // for (const event of eventTypes) {
+    //     const handler = allHandlers[event];
+    //     if (handler) {
+    //         socket.addEventListener(event, handler as any);
+    //     }
+    // }
+
+    // if (listeners && 'open' in listeners) {
+    //     socket.addEventListener('open', listeners['open']);
+    // } else {
+    //     socket.addEventListener('open', defaultWsHandlers['open']!);
+    // }
+    
+    // if (listeners && 'message' in listeners) {
+    //     socket.addEventListener('message', listeners['message']);
+    // } else {
+    //     socket.addEventListener('message', defaultWsHandlers['message']!);
+    // }
+
+    // if (listeners && 'close' in listeners) {
+    //     socket.addEventListener('close', listeners['close']);
+    // } else {
+    //     socket.addEventListener('close', defaultWsHandlers['close']!);
+    // }
 
     // if (listeners && 'error' in listeners) {
     //     socket.addEventListener('error', listeners['error']);
     // } else {
-    //     socket.addEventListener('error', function (error) {
-    //         console.log('WebSocket Error: ', error);
-    //     });
+    //     socket.addEventListener('error', defaultWsHandlers['error']!);
     // }
 
-    // socket.addEventListener('error', listeners['error'] ?? function (error) {
-    //     console.error('WebSocket Error: ', error);
-    // });
+    return socket;
 }

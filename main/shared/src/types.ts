@@ -51,7 +51,7 @@ export type HTTPMethod = "GET" // | "POST" | "PUT" | "DELETE" // | etc.
 export interface URITreeData {
     route: string;
     availableAssetsAtRoute?: RegExp;
-    assetServerHandler?: (request: http.IncomingMessage, response: http.ServerResponse) => void;
+    // assetServerHandler?: (request: http.IncomingMessage, response: http.ServerResponse) => void;
     serverRootDir?: string;
     handlerMap?: { [method in HTTPMethod]?: ((request: http.IncomingMessage, response: http.ServerResponse) => void) };
     childRoutes?: { [route: string]: URITree };
@@ -63,7 +63,7 @@ export class URITree implements URITreeData {
     // root: URITreeNode | undefined = undefined;
     route: string = '';
     availableAssetsAtRoute?: RegExp;
-    assetServerHandler?: (request: http.IncomingMessage, response: http.ServerResponse) => void;
+    // assetServerHandler?: (request: http.IncomingMessage, response: http.ServerResponse) => void;
     serverRootDir?: string;
     handlerMap?: { [method in HTTPMethod]?: ((request: http.IncomingMessage, response: http.ServerResponse) => void) };
     childRoutes?: { [route: string]: URITree };
@@ -81,9 +81,8 @@ export class URITree implements URITreeData {
         response.end(JSON.stringify({ err: 'Not Found' }));
     }
 
-    static serveStaticFile(req: http.IncomingMessage, res: http.ServerResponse) {
-
-    }
+    // static serveStaticFile(req: http.IncomingMessage, res: http.ServerResponse) {
+    // }
 
     private serveStaticFile(req: http.IncomingMessage, res: http.ServerResponse, staticFilename?: string, staticFilepath?: string): void {
         if (!staticFilename) {
@@ -118,10 +117,12 @@ export class URITree implements URITreeData {
             return;
         }
         // fs.createReadStream(__dirname + '/index.html').pipe(res);
-        const readStream = fs.createReadStream((staticFilepath ?? __dirname) + subpath + '/' + staticFilename);
+        // import or pass in __dirname ?? 
+        const readStream = fs.createReadStream((staticFilepath ?? this.serverRootDir) + subpath + '/' + staticFilename);
     
         readStream.on('error', (err) => {
             console.error(err);
+            if (this.default404Response) return this.default404Response(req, res);
             res.writeHead(404, { 'Content-Type': 'text/plain' });
             // res.end(`
             //     <h1>hi from ${os.hostname()}</h1>
@@ -149,7 +150,7 @@ export class URITree implements URITreeData {
     constructor(data: URITreeData) {
         Object.assign(this, data);
         this.default404Response ??= this.defaultNotFound;
-        this.assetServerHandler ??= this.serveStaticFile;
+        // this.assetServerHandler ??= this.serveStaticFile;
     }
     // constructor(data: T) {
     //     Object.assign(this, data);
@@ -173,7 +174,8 @@ export class URITree implements URITreeData {
             if (!this.handlerMap || !((request.method as HTTPMethod) in this.handlerMap)) {
                 // console.log(`Could not serve request of type ${request.method} at ${this.route}
                 //     because available options include: ${Object.keys(this.handlerMap ?? {})}`)
-                return this.default404Response!(request, response);
+                return this.serveStaticFile(request, response, 'index.html'); // attempt to serve index.html?? 
+                // return this.default404Response!(request, response);
             }
             // maybe unsafe-ish, since we're passing request on to the handlerMap and
             // expecting it to execute safely... maybe only execute if remainingURI is actually empty 
@@ -188,8 +190,10 @@ export class URITree implements URITreeData {
         if (!this.childRoutes || !(childToLookFor in this.childRoutes)) {
             // console.log(`No children can service this request. We can still try to serve assets here using this pattern: ${this.availableAssetsAtRoute}`);
             if (this.availableAssetsAtRoute && this.availableAssetsAtRoute.test(request.url)) {
-                if (!this.assetServerHandler) return this.default404Response!(request, response);
-                return this.assetServerHandler(request, response);
+                // if (!this.assetServerHandler) return this.default404Response!(request, response);
+                // return this.assetServerHandler(request, response);
+                // if (!this.serveStaticFile) return this.default404Response!(request, response);
+                return this.serveStaticFile(request, response);
             }
             return this.default404Response!(request, response);
         }

@@ -29,10 +29,11 @@ const availableAssetsRegex = /^\/((?:setup|utils(?:-(?:ui|socket))?)\.(?:.*)[jt]
 const routeHandler = new URITree({
     route: '/',
     availableAssetsAtRoute: availableAssetsRegex,
-    assetServerHandler: serveStaticAsset,
-    handlerMap: {
-        'GET': getRoot,
-    },
+    // assetServerHandler: serveStaticAsset,
+    serverRootDir: __dirname,
+    // handlerMap: {
+    //     'GET': getRoot, // will serve index by default 
+    // },
     default404Response: getNotFound,
     childRoutes: {
         'hostname': new URITree({
@@ -104,48 +105,48 @@ export function getRoot(req: http.IncomingMessage, res: http.ServerResponse) {
     }, 100);
 }
 
-function serveStaticAsset(req: http.IncomingMessage, res: http.ServerResponse) {
-    // console.log(`Serving static asset for ${req.method} ${req.url}`)
-    const fileMatcher = availableAssetsRegex;
-    const parsedRequestURL = req.url?.match(fileMatcher);
-    if (!parsedRequestURL || !parsedRequestURL[1]) {
-        // console.log(`No match for ${parsedRequestURL}`);
-        res.writeHead(404, { "content-type": "application/json" });
-        res.end(JSON.stringify({ error: 'Not Found' }));
-    } else {
-        // console.log(`From ${parsedRequestURL[0]}, found asset ${parsedRequestURL[1]}`);
-        // getUtilByName(req, res, parsedRequestURL[1]);
-        res.statusCode = 200;
-        res.setHeader('Content-Type', 'text/javascript'); // TODO assets that aren't js 
-        // const clientUtilsDirname = "/client-utils";
-        const utilFilePath = `${__dirname}/client-utils/${parsedRequestURL[1]}`;
-        // console.log(`About to serve file: ${utilFilePath}`)
-        // fs.createReadStream(utilFilePath).pipe(res);
-        const readStream = fs.createReadStream(utilFilePath);
+// function serveStaticAsset(req: http.IncomingMessage, res: http.ServerResponse) {
+//     // console.log(`Serving static asset for ${req.method} ${req.url}`)
+//     const fileMatcher = availableAssetsRegex;
+//     const parsedRequestURL = req.url?.match(fileMatcher);
+//     if (!parsedRequestURL || !parsedRequestURL[1]) {
+//         // console.log(`No match for ${parsedRequestURL}`);
+//         res.writeHead(404, { "content-type": "application/json" });
+//         res.end(JSON.stringify({ error: 'Not Found' }));
+//     } else {
+//         // console.log(`From ${parsedRequestURL[0]}, found asset ${parsedRequestURL[1]}`);
+//         // getUtilByName(req, res, parsedRequestURL[1]);
+//         res.statusCode = 200;
+//         res.setHeader('Content-Type', 'text/javascript'); // TODO assets that aren't js 
+//         // const clientUtilsDirname = "/client-utils";
+//         const utilFilePath = `${__dirname}/client-utils/${parsedRequestURL[1]}`;
+//         // console.log(`About to serve file: ${utilFilePath}`)
+//         // fs.createReadStream(utilFilePath).pipe(res);
+//         const readStream = fs.createReadStream(utilFilePath);
 
-        readStream.pipe(res);
+//         readStream.pipe(res);
 
-        readStream.on('error', (err) => {
-            console.error(err);
-            res.writeHead(404, { 'Content-Type': 'text/plain' });
-            // res.end(`
-            //     <h1>hi from ${os.hostname()}</h1>
-            //     <h3>fs.createReadStream('${__dirname}' + '/index.html') did not work.</h3>
-            //     <p>Server received request: ${req}</p>
-            //     <p>But there was an error while piping: ${err}</p>
-            // `);
-            res.end('Error fetching file.');
-        })
+//         readStream.on('error', (err) => {
+//             console.error(err);
+//             res.writeHead(404, { 'Content-Type': 'text/plain' });
+//             // res.end(`
+//             //     <h1>hi from ${os.hostname()}</h1>
+//             //     <h3>fs.createReadStream('${__dirname}' + '/index.html') did not work.</h3>
+//             //     <p>Server received request: ${req}</p>
+//             //     <p>But there was an error while piping: ${err}</p>
+//             // `);
+//             res.end('Error fetching file.');
+//         })
 
-        setTimeout(() => {
-            readStream.close(); // This may not close the stream.
-            // Artificially marking end-of-stream, as if the underlying resource had
-            // indicated end-of-file by itself, allows the stream to close.
-            // This does not cancel pending read operations, and if there is such an
-            // operation, the process may still not be able to exit successfully
-            // until it finishes.
-            readStream.push(null);
-            readStream.read(0);
-        }, 100);
-    }
-}
+//         setTimeout(() => {
+//             readStream.close(); // This may not close the stream.
+//             // Artificially marking end-of-stream, as if the underlying resource had
+//             // indicated end-of-file by itself, allows the stream to close.
+//             // This does not cancel pending read operations, and if there is such an
+//             // operation, the process may still not be able to exit successfully
+//             // until it finishes.
+//             readStream.push(null);
+//             readStream.read(0);
+//         }, 100);
+//     }
+// }

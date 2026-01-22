@@ -24,6 +24,7 @@ RUN npm install --production
 
 COPY --from=base /src/play/dist ./
 COPY --from=base /src/shared/dist ../shared/dist
+COPY --from=base /src/shared/node_modules ../shared/node_modules
 COPY play/index.html ./
 
 CMD ["node", "server.js"]

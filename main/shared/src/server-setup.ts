@@ -12,6 +12,8 @@ import type {
     WebSocketServerEvents, 
     WebSocketServerEventListenerMap 
 } from './types.js';
+import { validateToken, updateTokenActivity } from './token-store.js';
+
 
 // Two main categories of events (and listeners): those on the WebSocketServer instance 
 //      and those on the individual WebSocket connection instances. 
@@ -37,6 +39,7 @@ import type {
 // TODO hmmm... might have to move these back inside the defaultWssOnConnection method
 // if we have to access the websocket server for some of these 
 // or could pass it as an optional argument as a kind of way to attach them 
+// or put those handlers that need it in the specific server config maybe 
 
 export function defaultWsOnOpen (this: WebSocket) {
     // implicitly handled server-side 
@@ -69,7 +72,28 @@ export function defaultWsOnPong (this: WebSocket, data: Buffer) {
 }
 
 export function defaultWsOnMessage (this: WebSocket, data: WebSocket.RawData, isBinary: boolean) {
-        
+    console.log(`MESSAGE RECEIVED: (isBinary:${isBinary}) RawData:${data}`);
+    this.send(`Server received: ${data}`, (err) => err ? defaultWsOnError.call(this, err) : () => {});
+    let expected: {
+        [key: string]: any;
+        type: string;
+    } = {
+        type: 'ECHO',
+    }
+
+    // console.log(`${data.valueOf()}`)
+
+    try {
+        console.log(data.toString());
+        expected = {...JSON.parse(data.toString())};
+        console.log(expected);
+    } catch (err) {
+        if (err instanceof SyntaxError) {
+            console.warn(`Could not parse message as JSON: ${err}`);
+        } else {
+            console.warn(err);
+        }
+    }
 }
 
 export const defaultWsOnClose = (code: number, reason: Buffer) => {
@@ -156,8 +180,9 @@ export function defaultWssOnConnection(
     // ws.on('close', defaultWsOnClose);
 
     if (!wsListeners) wsListeners = defaultWebSocketListeners;
-    for (const wsEventType of Object.keys(defaultWebSocketListeners)) {
+    for (const wsEventType of Object.keys(wsListeners)) {
         const wsEventTypeKey = wsEventType as WebSocketEvents;
+        // console.log(`Adding ${wsListeners[wsEventTypeKey]} to event:${wsEventType}`)
         ws.on(wsEventType, wsListeners[wsEventTypeKey] ?? defaultWebSocketListeners[wsEventTypeKey])
     }
 };
@@ -183,13 +208,16 @@ export const setupWebSocketEventHandlers = (
     // wss.on('wsClientError', defaultWssOnWsClientError);
 
     if (!wssListeners) wssListeners = defaultWebSocketServerListeners;
-    for (const wsEventType of Object.keys(defaultWebSocketListeners)) {
+    for (const wsEventType of Object.keys(wssListeners)) {
         const wsEventTypeKey = wsEventType as WebSocketServerEvents;
         if (Array.isArray(wssListeners[wsEventTypeKey])) {
             for (const wssListener of wssListeners[wsEventTypeKey]) {
-                wss.on(wsEventType, wssListener)
+                // console.log(`Adding listener ${wssListener} to event: ${wsEventType}`)
+                // wss.on(wsEventType, wssListener)
+                wss.addListener(wsEventType, wssListener);
             }
         } else {
+            // console.log(`Adding listener ${wssListeners[wsEventTypeKey]} to event: ${wsEventType}`)
             wss.on(wsEventType, wssListeners[wsEventTypeKey] ?? defaultWebSocketServerListeners[wsEventTypeKey])
         }
     }
@@ -265,71 +293,72 @@ const utilFilepathMatcher = /^\/$/;
 
 // TODO pass __dirname in as Server arg ... 
 
-export function serveStaticFile(req: http.IncomingMessage, res: http.ServerResponse, staticFilename?: string, staticFilepath?: string): void {
-    if (!staticFilename) {
-        const fileMatcher = utilFilepathMatcher;
-        const parsedRequestURL = req.url?.match(fileMatcher);
-        if (!parsedRequestURL || !parsedRequestURL[1]) {
-            // set staticFilename as index.html and try to serve it, 
-            // it'll throw 404 anyway if not there... we can add this to the URITree class 
-            // TODO use the request URL as a second subpath for potential nested index.htmls ??
-            staticFilename = 'index.html';
-        } else {
-            staticFilename = parsedRequestURL[1];
-        }
-    }
+// function serveStaticFile(req: http.IncomingMessage, res: http.ServerResponse, staticFilename?: string, staticFilepath?: string): void {
+//     if (!staticFilename) {
+//         const fileMatcher = utilFilepathMatcher;
+//         const parsedRequestURL = req.url?.match(fileMatcher);
+//         if (!parsedRequestURL || !parsedRequestURL[1]) {
+//             // set staticFilename as index.html and try to serve it, 
+//             // it'll throw 404 anyway if not there... we can add this to the URITree class 
+//             // TODO use the request URL as a second subpath for potential nested index.htmls ??
+//             staticFilename = 'index.html';
+//         } else {
+//             staticFilename = parsedRequestURL[1];
+//         }
+//     }
 
-    res.statusCode = 200;
-    let subpath = '';
-    if (staticFilename.endsWith('.html')) {
-        res.setHeader('Content-Type', 'text/html');
-    } else if (staticFilename.endsWith('.js') || staticFilename.endsWith('.ts') || staticFilename.endsWith('.map')) {
-        // res.setHeader('Content-Type', 'application/json');
-        res.setHeader('Content-Type', 'text/javascript');
-        subpath = '/client-utils'
-    } else {
-        // res.statusCode = 404;
-        // default404(req, res);
-        res.writeHead(404, 'Not Found', { "content-type": 'application/json' });
-        res.end(JSON.stringify({ err: 'Not Found' }));
-        return;
-    }
-    // fs.createReadStream(__dirname + '/index.html').pipe(res);
-    const readStream = fs.createReadStream((staticFilepath ?? __dirname) + subpath + '/' + staticFilename);
+//     res.statusCode = 200;
+//     let subpath = '';
+//     if (staticFilename.endsWith('.html')) {
+//         res.setHeader('Content-Type', 'text/html');
+//     } else if (staticFilename.endsWith('.js') || staticFilename.endsWith('.ts') || staticFilename.endsWith('.map')) {
+//         // res.setHeader('Content-Type', 'application/json');
+//         res.setHeader('Content-Type', 'text/javascript');
+//         subpath = '/client-utils'
+//     } else {
+//         // res.statusCode = 404;
+//         // default404(req, res);
+//         res.writeHead(404, 'Not Found', { "content-type": 'application/json' });
+//         res.end(JSON.stringify({ err: 'Not Found' }));
+//         return;
+//     }
+//     // fs.createReadStream(__dirname + '/index.html').pipe(res);
+//     const readStream = fs.createReadStream((staticFilepath ?? __dirname) + subpath + '/' + staticFilename);
 
-    readStream.on('error', (err) => {
-        console.error(err);
-        res.writeHead(404, { 'Content-Type': 'text/plain' });
-        // res.end(`
-        //     <h1>hi from ${os.hostname()}</h1>
-        //     <h3>fs.createReadStream('${__dirname}' + '/index.html') did not work.</h3>
-        //     <p>Server received request: ${req}</p>
-        //     <p>But there was an error while piping: ${err}</p>
-        // `);
-        res.end('Not Found');
-    });
+//     readStream.on('error', (err) => {
+//         console.error(err);
+//         res.writeHead(404, { 'Content-Type': 'text/plain' });
+//         // res.end(`
+//         //     <h1>hi from ${os.hostname()}</h1>
+//         //     <h3>fs.createReadStream('${__dirname}' + '/index.html') did not work.</h3>
+//         //     <p>Server received request: ${req}</p>
+//         //     <p>But there was an error while piping: ${err}</p>
+//         // `);
+//         res.end('Not Found');
+//     });
 
-    readStream.pipe(res);
+//     readStream.pipe(res);
 
-    setTimeout(() => {
-        readStream.close(); // This may not close the stream.
-        // Artificially marking end-of-stream, as if the underlying resource had
-        // indicated end-of-file by itself, allows the stream to close.
-        // This does not cancel pending read operations, and if there is such an
-        // operation, the process may still not be able to exit successfully
-        // until it finishes.
-        readStream.push(null);
-        readStream.read(0);
-    }, 100);
-};
+//     setTimeout(() => {
+//         readStream.close(); // This may not close the stream.
+//         // Artificially marking end-of-stream, as if the underlying resource had
+//         // indicated end-of-file by itself, allows the stream to close.
+//         // This does not cancel pending read operations, and if there is such an
+//         // operation, the process may still not be able to exit successfully
+//         // until it finishes.
+//         readStream.push(null);
+//         readStream.read(0);
+//     }, 100);
+// };
 
 const routeHandler = new URITree({
     route: '/',
     availableAssetsAtRoute: utilFilepathMatcher,
-    assetServerHandler: serveStaticFile,
-    handlerMap: {
-        "GET": serveStaticFile,
-    }
+    // assetServerHandler: () => {},
+    // handlerMap: {
+    //     "GET": () => {}, // will attempt to serve index by default... 
+    //              // without a serverBasePath it will attempt to serve /index.html
+    // }
 })
 
 // // ********** default http event listeners ************** 
@@ -337,18 +366,17 @@ const routeHandler = new URITree({
 // // ************** passes requests through the middleware logic before attempting to serve ***************
 
 // needs host and port ... 
-const httpServerOnListen = () => {
-
+const httpServerOnListen = (port?: number, hostname?: string) => {
 }
 
-const httpServerOnRequest = (
+function httpServerOnRequest (
     request: http.IncomingMessage, 
     response: http.ServerResponse<http.IncomingMessage> & { req: http.IncomingMessage; },
     options?: {
         routeHandler?: URITree | undefined,
         // __dirname?: string,
     }
-) => {
+): void {
     // console.log(`HTTP Server on request: ${request.url}`);
     // putting similar logic to wssOnRequestFIXTHIS in here... actually can't really do that 
     // but refactoring and creating a middleware stack, loosely based on 
@@ -441,6 +469,7 @@ export const setupHttpServerEventHandlers = (
         request: http.IncomingMessage, 
         response: http.ServerResponse
     ) => httpServerOnRequest(request, response, { routeHandler }))
+    // server.on('request', httpServerOnRequest);
     // server.on('upgrade', httpServerOnUpgrade)
     // console.log(`Set up server with event listeners...`);
     return server;
@@ -458,3 +487,12 @@ export const setupHttpServerEventHandlers = (
 //         this.httpServer = options.httpServer ?? setupHttpServerEventHandlers()
 //     }
 // }
+
+class DiceGamesServer<T extends http.Server | WebSocketServer> {
+    routeHandler ?= undefined;
+
+    constructor() {
+        // this.super();
+        // super();
+    }
+}
