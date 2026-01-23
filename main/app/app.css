@@ -1,0 +1,50 @@
+body {
+    background-color: #333;
+    color: white;
+
+    #nav-buttons {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    #login-inputs {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #chat {
+        display: flex; 
+        width: 50%; 
+        flex-direction: column; 
+        border: 1px solid black;
+
+        #chat-inputs {
+            display: flex; 
+            flex-direction: column;
+            margin-top: auto;
+            max-height: 10vh;
+            overflow-y: auto;
+
+            .chat-input-row {
+                display: flex;
+
+                .chat-input-text {
+                    flex-grow: 1;
+                }
+
+                .chat-input-send {
+                    max-width: fit-content;
+                }
+            }
+        }
+    }
+}
+
+.dynamic-link:link { color: cyan; }
+.dynamic-link:visited { color: limegreen; }
+.dynamic-link:hover { color: orange; }
+.dynamic-link:active { color: hotpink; }
+.dynamic-link { margin: 8px; }

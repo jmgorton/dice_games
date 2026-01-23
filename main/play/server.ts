@@ -8,23 +8,7 @@ import {
 //  } from './server-utils/event-handlers.js';
 } from '../shared/dist/server-setup.js';
 
-import {
-    // serveStaticFile,
-    // getHostname,
-    wssOnConnectionAlt,
-    // wssOnConnectionOld,
-    // wssOnConnectionTest,
-} from './server-utils/event-handlers.js'
 import { URITree } from '../shared/dist/types.js';
-
-// import {
-//     connectionArray, // TODO research how importing an array works ... can't assign, but can manipulate it seems 
-//     originIsAllowed,
-//     isUsernameUnique,
-//     getConnectionForID,
-//     // makeUserListMessage,
-//     sendUserListToAll,
-// } from './server-utils/helpers.js'
 
 const protocol = 'http';
 const hostname = '0.0.0.0';
@@ -134,7 +118,8 @@ function getConnectionForID(id: number) {
 function makeUserListMessage() {
     return {
         type: "userlist",
-        users: Object.entries(clients).map(([clientId, clientInfo], index) => clientInfo.username ?? clientId ?? index)
+        // users: Object.entries(clients).map(([clientId, clientInfo], index) => clientInfo.username ?? clientId ?? index)
+        users: Object.keys(clients).map(client => clients[client]?.username ?? client ?? 'unknown').join(';')
     }
 }
 
@@ -153,6 +138,17 @@ function getIpFromRequest(request: http.IncomingMessage): string | undefined {
     return ip;
 }
 
+
+
+// type MessageTypeFromClient = "OPEN" | "MESSAGE" | "ECHO";
+const validInputMessageTypes = ["OPEN", "MESSAGE", "ECHO"];
+type MessageTypeFromClient = typeof validInputMessageTypes[number];
+
+interface MessageIn {
+    [key: string]: any;
+    type: MessageTypeFromClient;
+}
+
 function wssOnConnection(this: WebSocketServer, ws: WebSocket, request: http.IncomingMessage) {
 
     const wss = this;
@@ -162,109 +158,185 @@ function wssOnConnection(this: WebSocketServer, ws: WebSocket, request: http.Inc
 
     clients[clientId] = { socket: ws, username: clientId, ip }
 
-    // ws.addEventListener('message', (event: WebSocket.MessageEvent) => {
-    //     console.log(`MessageEvent: ${event}`);
-    //     ws.send(`Received message: ${event}`);
-    // })
+    const broadcast = (msg: any) => {
+        
+        console.log(`Broadcasting to ${wss.clients.size} client(s)`);
+        wss.clients.forEach(function each(client) { 
+            if (client.readyState === WebSocket.OPEN) {
+                // client.send(`USERS::${request.socket.remoteAddress ?? 'Unknown'}`)
+                client.send(msg);
+            } else {
+                // console.log(`Client ${client} not ready... ${client.readyState}`)
+            }
+        });
+        // Object.keys(clients).forEach((clientId) => {
+        //     // console.log(`ClientId: ${clientId} -> Client: ${JSON.stringify(clients[clientId])}`)
+        //     clients[clientId]?.socket?.send(messageOut);
+        // });
+    }
 
-    ws.on('message', function (this: WebSocket, data: WebSocket.RawData, isBinary: boolean) {
-        let message: WebSocket.RawData | any = data;
-        console.log(`DATA: ${data}`);
-        let messageType: string | any = 'ECHO';
-        let messageInfo = {
+    // listener for message of expected format: `{{type}}::{{data}}` 
+    const stringMessageParser = (event: WebSocket.MessageEvent): MessageIn | undefined => {
+        // console.log(`MessageEvent: ${event}`);
+        // ws.send(`Received message: ${event}`);
+        // const { target, data, type}: { 
+        //     target: WebSocket, 
+        //     data: WebSocket.Data, data = [79,80,69,78,58,58,74,97,...]
+        //     type: string // type = Buffer
+        // } = {...event};
+        const data = event;
+        // let message, messageType: string | undefined;
+        let message: MessageIn = {
+            type: 'ECHO'
+        }
+        try {
+            const dataEls = data.toString().split('::');
+            // console.log(messageType, message);
+            if (!dataEls || dataEls.length !== 2 || !dataEls[0]) return undefined;
+            if (validInputMessageTypes.includes(dataEls[0])) {
+                message.type = dataEls[0];
+                switch (message.type) {
+                    case "MESSAGE":
+                        message.text = dataEls[1];
+                        break;
+                    case "OPEN":
+                        message.username = dataEls[1];
+                        break;
+                    default: // ECHO 
+                        message.content = dataEls[1];
+                }
+            } else {
+                message.content = data;
+            }
+            return message;
+        } catch (err: any) {
+            // console.warn('Message was not parsable');
+            return undefined;
+        }
+    };
+    // ws.addEventListener('message', stringMessageHandler);
+
+    // TODO make WebSocket target or keep as `this`? 
+    const jsonMessageParser = function (this: WebSocket, data: WebSocket.RawData, isBinary: boolean): MessageIn | undefined {
+        let message: WebSocket.RawData = data;
+        // console.log(`DATA: ${data}`);
+        let messageInfo: MessageIn = {
             id: undefined,
-            type: undefined,
+            type: 'ECHO',
             name: undefined,
             text: undefined,
         }
 
-        // if (typeof data === 'string') {
-        //     try {
-        //         [messageType, message] = data.split('::');
-        //         console.log(messageType, message);
-        //     } catch (err: any) {
-        //         console.warn('Message was not parsable');
-        //     }
-        // }
-
         try {
             message = JSON.parse(data.toString());
             // console.log(`MESSAGE: ${message}`)
-            messageType = message["type"];
             Object.assign(messageInfo, message);
-            // console.log(messageType, messageInfo);
+            return messageInfo;
         } catch (err: any) {
             if (err instanceof SyntaxError) {
                 // console.warn('Message was not parsable');
-                // console.log("error");
             }
+            return undefined;
+        }
+    };
 
-            try {
-                [messageType, message] = data.toString().split('::');
-                // console.log(messageType, message);
-            } catch (err: any) {
-                console.warn('Message was not parsable');
+    // const echoMessage = (event: WebSocket.MessageEvent) => {
+    //     // console.log(`MessageEvent: ${event}`);
+    //     ws.send(`ECHO: ${event}`);
+    // }
+
+    // const parsers = [stringMessageParser, jsonMessageParser];
+    const parseMessageFromEvent = (event: WebSocket.MessageEvent): MessageIn => {
+        // const { target, data, type}: { 
+        //     target: WebSocket, 
+        //     data: WebSocket.Data, // need WebSocket.RawData
+        //     type: string 
+        // } = {...event};
+        const data = event;
+        // console.log(`Attempting to parse ${data}`);
+        if (!data) return { type: "ECHO", content: data };
+        // WebSocket.Data: a broad union type 
+        //  (often string | Buffer | ArrayBuffer | Buffer[]) 
+        //  string | ArrayBuffer | Buffer<ArrayBufferLike> | Buffer<ArrayBufferLike>[]
+        // WebSocket.RawData: a union of Buffer | ArrayBuffer | Buffer[] 
+        // because the library treats raw incoming frames as binary buffers
+        //      before they are optionally decoded.
+
+        const isBinary = false; // TODO does this relate to type? How to find? 
+        // const possibleArgs = {event, data: event.data, isBinary};
+        let messageIn = stringMessageParser(event);
+        // for (const parser of parsers) {
+        //     messageIn = parser(this: event.target, {...possibleArgs})
+        // }
+        let dataBuffer = undefined;
+        if (Buffer.isBuffer(data)) dataBuffer = data;
+        else if (Array.isArray(data)) dataBuffer = Buffer.from(data.join())
+        else if (typeof data === 'string') dataBuffer = Buffer.from(data)
+        // else dataBuffer = Buffer.from(data) // data instanceof ArrayBuffer
+        if (!dataBuffer) {
+            console.log(`Could not build data buffer from data: ${data}`);
+            return {
+                type: "ECHO",
+                content: data,
             }
         }
+
+        // console.log(`About to call JSON Parser with args: ${target}, ${dataBuffer}`)
+        if (!messageIn) messageIn = jsonMessageParser.call(event.target, dataBuffer, isBinary);
+        if (!messageIn) {
+            console.log(`Unparsable message received: ${event}`);
+            // return undefined;
+            return {
+                type: "ECHO",
+                content: data,
+            }
+        }
+        return messageIn;
+    }
+
+
+    ws.on('message', (event: WebSocket.MessageEvent) => {
+        // console.log(`MessageEvent: ${event} ... ${JSON.stringify(event)}`);
+        // ws.send(`Received message: ${event}`);
+        const messageIn: MessageIn = parseMessageFromEvent(event);
+        // const { target, data, type}: { 
+        //     target: WebSocket, 
+        //     data: WebSocket.Data, // need WebSocket.RawData ... for RawData, just pass in event 
+        //     type: string 
+        // } = {...event};
+        const data = event;
+        // console.log(`Parsed event and got ${JSON.stringify(messageIn)}`);
 
         // let messageOut: any
-        switch (messageType) {
+        switch (messageIn.type) {
             case "OPEN":
-                // userlistMessage = f"USERS::{';'.join(userlist)}"
-                const newUserlist: string = Object.keys(clients).map(client => clients[client]?.username ?? client ?? 'unknown').join(';')
-                let messageOut: any = JSON.stringify({
-                    type: "userlist",
-                    // users: wss.clients.values().map(ws => message)
-                    // users: message,
-                    users: newUserlist,
-                })
-                wss.clients.add(this);
-                // console.log(`Broadcasting to ${wss.clients.size} client(s)`);
-                wss.clients.forEach(function each(client) { // wss.clients not working? 
-                    if (client.readyState === WebSocket.OPEN) {
-                        // client.send(`USERS::${request.socket.remoteAddress ?? 'Unknown'}`)
-                        client.send(messageOut);
-                    } else {
-                        console.log(`Client ${client} not ready... ${client.readyState}`)
-                    }
-                });
-                // Object.keys(clients).forEach((clientId) => {
-                //     // console.log(`ClientId: ${clientId} -> Client: ${JSON.stringify(clients[clientId])}`)
-                //     clients[clientId]?.socket?.send(messageOut);
+                if (clients && clientId in clients) clients[clientId]!.username = messageIn.username; 
+                // let messageOut: any = JSON.stringify({
+                //     type: "userlist",
+                //     users: makeUserListMessage(),
                 // });
-                this.send(JSON.stringify({ type: "id", id: clientId }));
+                let messageOut = JSON.stringify(makeUserListMessage());
+                // wss.clients.add(this);
+                ws.send(JSON.stringify({ type: "id", id: clientId })); // target undefined ??? 
+                broadcast(messageOut);
                 break;
             case "MESSAGE":
-                // var msg = {
-                //     text: textEl.value,
-                //     type: "message",
-                //     id: clientID,
-                //     date: Date.now()
-                // };
+                const sender = clients[messageIn.id] ?? clients[clientId];
                 let msgOut = {
                     type: 'message',
-                    text: message.text,
-                    name: 'Jeff',
+                    text: messageIn.text,
+                    name: sender?.username ?? 'unknown', // ?? 
                     date: Date.now(),
                 }
-                wss.clients.forEach(function each(client) { // wss.clients not working? 
-                    if (client.readyState === WebSocket.OPEN) {
-                        // client.send(`USERS::${request.socket.remoteAddress ?? 'Unknown'}`)
-                        client.send(JSON.stringify(msgOut));
-                    } else {
-                        console.log(`Client ${client} not ready... ${client.readyState}`)
-                    }
-                });
+                broadcast(JSON.stringify(msgOut));
                 break;
             case "ECHO":
-            // default:
-                console.log(`Failed to determine message type for input message: ${data}`)
-                this.send(`ECHO: ${data}`);
-                // ws.send(`Server received... ${data}`);
+                // console.log(`Failed to determine message type for input message: ${data}`)
+                ws.send(`ECHO: ${messageIn?.content ?? data}`); // target is undefined ??? 
                 break;
             default:
-                ws.send(`Unrecognized message type: ${data}`);
+                console.log(`Unrecognized message type: ${data}`);
                 break;
         }
-    })
+    });
 };

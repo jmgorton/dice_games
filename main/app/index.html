@@ -4,6 +4,7 @@
   <head>
     <title>Dice Games</title>
     <meta charset="utf-8" />
+    <link rel="stylesheet" href="app.css">
     <!-- moving from CommonJS to ES modules -->
     <!-- type="text/javascript" for CommonJS, type="module" for ES modules -->
      <script type="module" src="setup.js"></script>
@@ -17,16 +18,22 @@
     <div id="wrapper" style="display: flex; width: 100%; gap: 5px; height: 60vh;">
       <!-- nav:  align-items: start; justify-content: start; -->
       <div id="nav" style="width: 20%;">
-        <div id="nav-buttons" ></div>
+        <div id="nav-buttons" >
+          <a class="dynamic-link" href="/auth">/auth</a>
+          <a class="dynamic-link" href="/play">/play</a>
+          <a class="dynamic-link" href="/collab">/collab</a>
+        </div>
         <div id="login-inputs" ></div>
       </div>
   
-      <div id="chat" style="display: flex; width: 50%; flex-direction: column; border: 1px solid black;">
+      <div id="chat">
         <div id="chatbox"></div>
         <!-- chatInput: flex-direction: row; justify-content: space-evenly;  -->
-        <div id="chatInput" style="display: flex; margin-top: auto;">
-          <input id="text" style="flex-grow: 1;" />
-          <input id="send" style="max-width: fit-content;" />
+        <div id="chat-inputs">
+          <div class="chat-input-row">
+            <!-- <input id="text" />
+            <input id="send" /> -->
+          </div>
         </div>
       </div>
       <div id="userlistbox" style="border: 1px solid black; width: 20%; height: 100%;"></div>

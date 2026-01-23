@@ -32,7 +32,7 @@ function defaultWsOnMessage (this: WebSocket, ev: MessageEvent<any>): any {
 }
 
 function defaultWsOnClose (this: WebSocket, ev: CloseEvent): any {
-    console.log('Connection closed');
+    console.log('Connection closed...', ev);
 }
 
 function defaultWsOnError (this: WebSocket, ev: Event): void {
@@ -94,13 +94,6 @@ export function getSocketWithListenersByURL(
     //      type: "open", 
     //      listener: (this: WebSocket, ev: Event) => any, options?: boolean | AddEventListenerOptions | undefined): void (+1 overload)
 
-
-    // if (!listeners) listeners = defaultWsHandlers;
-    // for (const event of Object.keys(listeners)) {
-    //      const eventKey = event as keyof WebSocketEventMap;
-    //      socket.addEventListener(eventKey, listeners[eventKey] ?? defaultWsHandlers[eventKey]);
-    // }
-
     const allHandlers = { ...defaultWsHandlers, ...listeners };
     
     for (const event of Object.keys(allHandlers) as Array<keyof WebSocketEventMap>) {
@@ -118,30 +111,6 @@ export function getSocketWithListenersByURL(
     //     if (handler) {
     //         socket.addEventListener(event, handler as any);
     //     }
-    // }
-
-    // if (listeners && 'open' in listeners) {
-    //     socket.addEventListener('open', listeners['open']);
-    // } else {
-    //     socket.addEventListener('open', defaultWsHandlers['open']!);
-    // }
-    
-    // if (listeners && 'message' in listeners) {
-    //     socket.addEventListener('message', listeners['message']);
-    // } else {
-    //     socket.addEventListener('message', defaultWsHandlers['message']!);
-    // }
-
-    // if (listeners && 'close' in listeners) {
-    //     socket.addEventListener('close', listeners['close']);
-    // } else {
-    //     socket.addEventListener('close', defaultWsHandlers['close']!);
-    // }
-
-    // if (listeners && 'error' in listeners) {
-    //     socket.addEventListener('error', listeners['error']);
-    // } else {
-    //     socket.addEventListener('error', defaultWsHandlers['error']!);
     // }
 
     return socket;

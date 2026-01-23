@@ -24,7 +24,7 @@ const __dirname = path.dirname(__filename);
 const hostname = '0.0.0.0';
 const port = 3000;
 
-const availableAssetsRegex = /^\/((?:setup|utils(?:-(?:ui|socket))?)\.(?:.*)[jt]s(?:\.map)?)$/;
+const availableAssetsRegex = /^\/((?:app\.css|(?:setup|utils(?:-(?:ui|socket))?)\.(?:.*)[jt]s(?:\.map)?))$/;
 
 const routeHandler = new URITree({
     route: '/',

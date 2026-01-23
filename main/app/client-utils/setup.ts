@@ -61,22 +61,19 @@ document.addEventListener('visibilitychange', () => {
 })
 
 // dark mode 
-document.body.style.backgroundColor = '#333';
-document.body.style.color = 'white';
+// document.body.style.backgroundColor = '#333';
+// document.body.style.color = 'white';
 
-const style = document.createElement('style');
-style.innerHTML = `
-    .dynamic-link:link { color: cyan; }
-    .dynamic-link:visited { color: limegreen; }
-    .dynamic-link:hover { color: orange; }
-    .dynamic-link:active { color: hotpink; }
-    .dynamic-link { margin: 8px; }
-`;
-document.head.appendChild(style);
-// const elements = document.getElementsByTagName("a");
-// for (const element of elements) {
-//     element.classList.add('dynamic-link');
-// }
+// const style = document.createElement('style');
+// style.innerHTML = `
+//     .dynamic-link:link { color: cyan; }
+//     .dynamic-link:visited { color: limegreen; }
+//     .dynamic-link:hover { color: orange; }
+//     .dynamic-link:active { color: hotpink; }
+//     .dynamic-link { margin: 8px; }
+// `;
+// document.head.appendChild(style);
+
 
 // generic styling 
 // document.body.style.display = 'flex';
@@ -84,23 +81,23 @@ document.head.appendChild(style);
 // document.body.style.alignContent = 'center';
 // document.body.style.justifyContent = 'center';
 
-document.addEventListener("DOMContentLoaded", () => {
-    const buttonAttrs = [
-        { href: "/auth", innerText: "/auth (JS)" },
-        { href: "/play", innerText: "/play (JS Lotto Sim)" },
-        { href: "/collab", innerText: "/collab (Python)" },
-    ]
-    const navButtonDiv = document.getElementById("nav-buttons") as HTMLDivElement;
-    navButtonDiv.style.display = "flex";
-    navButtonDiv.style.flexDirection = "column";
-    navButtonDiv.style.justifyContent = "center";
-    for (let i = 0; i < 3; i++) {
-        const navButton = document.createElement("a");
-        Object.assign(navButton, buttonAttrs[i]);
-        navButton.classList.add("dynamic-link");
-        navButtonDiv.appendChild(navButton);
-    }
-});
+// document.addEventListener("DOMContentLoaded", () => {
+//     const buttonAttrs = [
+//         { href: "/auth", innerText: "/auth (JS)" },
+//         { href: "/play", innerText: "/play (JS Lotto Sim)" },
+//         { href: "/collab", innerText: "/collab (Python)" },
+//     ]
+//     const navButtonDiv = document.getElementById("nav-buttons") as HTMLDivElement;
+//     // navButtonDiv.style.display = "flex";
+//     // navButtonDiv.style.flexDirection = "column";
+//     // navButtonDiv.style.justifyContent = "center";
+//     for (let i = 0; i < 3; i++) {
+//         const navButton = document.createElement("a");
+//         Object.assign(navButton, buttonAttrs[i]);
+//         navButton.classList.add("dynamic-link");
+//         navButtonDiv.appendChild(navButton);
+//     }
+// });
 
 document.addEventListener("DOMContentLoaded", () => {
     const websockButtonAttrs = {
@@ -149,10 +146,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const loginButtonDiv = document.getElementById("login-inputs") as HTMLDivElement;
-    loginButtonDiv.style.display = "flex";
-    loginButtonDiv.style.flexDirection = "column";
-    loginButtonDiv.style.justifyContent = "center";
-    loginButtonDiv.style.alignItems = "center";
+    // loginButtonDiv.style.display = "flex";
+    // loginButtonDiv.style.flexDirection = "column";
+    // loginButtonDiv.style.justifyContent = "center";
+    // loginButtonDiv.style.alignItems = "center";
     for (let i = 0; i < 3; i++) {
         const loginInput = document.createElement("p");
         const textInput = Object.assign(document.createElement("input"), buttonAttrs[i]["textInput"]);
@@ -165,22 +162,22 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-document.addEventListener("DOMContentLoaded", () => {
-    const chatInputText = document.getElementById("text") as HTMLInputElement;
-    chatInputText.type = "text";
-    chatInputText.name = "text";
-    chatInputText.maxLength = 512;
-    chatInputText.placeholder = "Say something...";
-    chatInputText.autocomplete = "on";
-    chatInputText.onkeyup = handleKey;
-    chatInputText.disabled = true;
-    const chatInputSend = document.getElementById("send") as HTMLInputElement;
-    chatInputSend.type = "button";
-    chatInputSend.name = "send";
-    chatInputSend.value = "Send";
-    chatInputSend.onclick = sendMessage;
-    chatInputSend.disabled = true;
-})
+// document.addEventListener("DOMContentLoaded", () => {
+//     const chatInputText = document.getElementById("text") as HTMLInputElement;
+//     chatInputText.type = "text";
+//     chatInputText.name = "text";
+//     chatInputText.maxLength = 512;
+//     chatInputText.placeholder = "Say something...";
+//     chatInputText.autocomplete = "on";
+//     chatInputText.onkeyup = handleKey;
+//     chatInputText.disabled = true;
+//     const chatInputSend = document.getElementById("send") as HTMLInputElement;
+//     chatInputSend.type = "button";
+//     chatInputSend.name = "send";
+//     chatInputSend.value = "Send";
+//     chatInputSend.onclick = sendMessage;
+//     chatInputSend.disabled = true;
+// })
 
 // window.onload (older syntax)
 // window.addEventListener('load') (more modern approach)
