@@ -3,12 +3,12 @@ import {
     sendMessage,
 } from './utils.js'
 
-export function enableChatInput() {
-    const textEl: HTMLElement | null = document.getElementById("text");
-    if (textEl) (textEl as HTMLInputElement).disabled = false;
-    const sendEl: HTMLElement | null = document.getElementById("send");
-    if (sendEl) (sendEl as HTMLButtonElement).disabled = false;
-}
+// function enableChatInput() {
+//     const textEl: HTMLElement | null = document.getElementById("text");
+//     if (textEl) (textEl as HTMLInputElement).disabled = false;
+//     const sendEl: HTMLElement | null = document.getElementById("send");
+//     if (sendEl) (sendEl as HTMLButtonElement).disabled = false;
+// }
 
 export function addChatInput(clientId?: string) {
     const chatInputContainer = document.getElementById("chat-inputs") as HTMLDivElement;
@@ -37,14 +37,49 @@ export function addChatInput(clientId?: string) {
     chatInputContainer.appendChild(newChatInputRow);
 }
 
-export function updateUserlistBox(users: string) {
+function generateRandomHexColor(): string {
+  // Generate a random number between 0 and 16777215 (0xFFFFFF)
+  const randomColor = Math.floor(Math.random() * 16777215);
+
+  // Convert the number to a hexadecimal string
+  const hexColor = randomColor.toString(16);
+
+  // Pad the string with leading zeros if necessary to ensure it's 6 digits long
+  const fullHexColor = "#" + hexColor.padStart(6, '0');
+
+  return fullHexColor;
+}
+
+export function updateUserlistBox(...users: (string | string[])[]) {
     const userlistBoxEl = document.getElementById("userlistbox");
     if (!userlistBoxEl) return;
-    const userlist: string[] = users.split(';');
-    const newUserListHTMLItems: string[] = userlist.map((user, index) => {
-        return (`<li key=${index}>${user}</li>`)
+    const userlistEl = document.createElement("ul");
+    
+    // let userlist; // = users;
+    // if (typeof users === 'string') {
+    //     userlist = users.split(';');
+    // } else {
+    //     userlist = users;
+    // }
+    users.forEach((usersArg, argIndex) => {
+        // assign each argument supplied a different color 
+        const thisColorHex = generateRandomHexColor();
+        if (typeof usersArg === 'string') {
+            usersArg = [usersArg]
+        }
+        usersArg.forEach((user, subIndex) => {
+            const userlistItemEl = document.createElement("li")
+            userlistItemEl.style.color = thisColorHex;
+            userlistItemEl.innerText = user;
+            userlistEl.appendChild(userlistItemEl);
+        })
     })
-    userlistBoxEl.innerHTML = `<ul>${newUserListHTMLItems.join('')}</ul>`;
+    // const newUserListHTMLItems: string[] = userlist.map((user, index) => {
+    //     const userItem = document.createElement("li");
+    //     // return (`<li key=${index}>${user}</li>`)
+    // })
+    userlistBoxEl.replaceChildren(userlistEl); // appendChild, no 
+    // userlistBoxEl.innerHTML = `<ul>${newUserListHTMLItems.join('')}</ul>`;
 }
 
 export function addChatMessageToChatBox(message: string) {

@@ -1,9 +1,10 @@
 import {
-    connectPyWSS,
+    // connectPyWSS,
     // connectWS,
-    connectPlay,
-    sendMessage,
-    handleKey
+    // connectPlay,
+    connect,
+    // sendMessage,
+    // handleKey
 } from './utils.js'
 // import { uptime } from 'process';
 
@@ -99,6 +100,18 @@ document.addEventListener('visibilitychange', () => {
 //     }
 // });
 
+const buildConnectButtons = (target: string) => {
+    const textInputAttrs = {
+        type: "text",
+        maxLength: 20,
+        placeholder: "Enter a username...",
+    };
+    const buttonInputAttrs = {
+        type: "button",
+        name: "login",
+    };
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     const websockButtonAttrs = {
         "textInput": {
@@ -119,7 +132,8 @@ document.addEventListener("DOMContentLoaded", () => {
         "buttonInput": {
             id: "play-login",
             value: "Connect (/play)",
-            onclick: connectPlay,
+            // onclick: connectPlay,
+            onclick: () => connect("play")
         },
     };
     const pyWsButtonAttrs = {
@@ -129,7 +143,8 @@ document.addEventListener("DOMContentLoaded", () => {
         "buttonInput": {
             id: "collab-login",
             value: "Connect (/collab)",
-            onclick: connectPyWSS,
+            // onclick: connectPyWSS,
+            onclick: () => connect("collab")
         },
     };
     const buttonAttrs: any[] = [websockButtonAttrs, playWsButtonAttrs, pyWsButtonAttrs];
@@ -161,6 +176,35 @@ document.addEventListener("DOMContentLoaded", () => {
         loginButtonDiv.appendChild(loginInput);
     }
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+    const toggleNav = document.getElementById("toggle-nav");
+    if (!toggleNav) return;
+    toggleNav.onclick = function (this: GlobalEventHandlers, ev: PointerEvent): any {
+        // if (toggleNav.style.width = "20%") {
+        if (toggleNav.classList.contains('visible')) {
+            console.log(`Hiding nav`);
+            toggleNav.classList.remove('visible');
+            toggleNav.classList.add('hidden');
+        } else {
+            console.log(`Showing nav`);
+            toggleNav.classList.remove('hidden');
+            toggleNav.classList.add('visible');
+        }
+
+        const navParent = toggleNav.parentElement;
+        if (!navParent) return;
+        const navElements = navParent.children;
+        if (!navElements) return;
+        let leaveFirstChildVisible = true;
+        for (const navChild of navElements) {
+            if (!(navChild instanceof HTMLElement)) return;
+            navChild.style.display = (toggleNav.classList.contains('visible') || leaveFirstChildVisible) ? "flex" : "none";
+            leaveFirstChildVisible = false;
+        }
+        // (navParent.firstChild as HTMLElement).style.display = "flex"
+    }
+})
 
 // document.addEventListener("DOMContentLoaded", () => {
 //     const chatInputText = document.getElementById("text") as HTMLInputElement;

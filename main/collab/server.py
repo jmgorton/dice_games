@@ -9,6 +9,8 @@ from logging.handlers import QueueHandler, QueueListener
 
 from typing import List
 from collections import defaultdict
+from uuid import uuid4
+import json
 
 # logging.basicConfig(level=logging.INFO)
 # logger = logging.getLogger(__name__)
@@ -26,14 +28,40 @@ logger = logging.getLogger("collab")
 logger.setLevel(logging.INFO)
 logger.addHandler(QueueHandler(q))
 
-userlist: List[str] = []
-userConnections = {} # defaultdict(None) # {}
+# userlist: List[str] = []
+# userConnections = {} # defaultdict(None) # {} # does every entry point to the same websocket??? 
+connections = defaultdict(None)
 
-def addUserToUserlist(user: str):
-    userlist.append(user)
+# def addUserToUserlist(user: str):
+#     userlist.append(user)
 
-def saveUserWebSocketConnection(user, ws):
-    userConnections[user] = ws
+# def saveUserWebSocketConnection(user, ws):
+#     userConnections[user] = ws
+
+# def saveUserInfo(id: str, info: dict):
+#     connections[id].update(info)
+
+async def broadcast(message: str):
+    sendTasks = [connection["socket"].send(message) for connection in connections.values()]
+    await asyncio.gather(*sendTasks)
+
+async def handleOpen(username, ws):
+    newId = str(uuid4())[:10]
+    connections[newId] = { "name": username, "socket": ws }
+    idMessageOut = json.dumps({"type": "id", "id": newId})
+    await ws.send(idMessageOut)
+    usersMessageOut = json.dumps({ "type": "userlist", "users": ';'.join([connection["name"] for connection in connections.values()])})
+    await broadcast(usersMessageOut)
+
+async def handleMessage(message, ws):
+    sentBy = "unknown user"
+
+    # for user, ws in userConnections.items():
+    #     sentBy = "Unknown User: "
+    #     if (ws == websocket):
+    #         sentBy = f"{user}: "
+    newMessage = f"MESSAGE::{sentBy}{message}"
+    await broadcast(newMessage)
 
 # This function is the handler for each client connection
 async def echo_handler(websocket):
@@ -53,26 +81,18 @@ async def echo_handler(websocket):
             try:
                 [messageType, messageContent] = message.split("::")
             except ValueError:
-                messageType = "ECHO"
+                try:
+                    messageJson = json.loads(message)
+                    messageType = messageJson["type"]
+                except ValueError:
+                    messageType = "ECHO"
+                    
                 # messageContent = message
 
             if (messageType == "OPEN"):
-                if (messageContent not in userConnections):
-                    addUserToUserlist(messageContent)
-                    saveUserWebSocketConnection(messageContent, websocket)
-                    userlistMessage = f"USERS::{';'.join(userlist)}"
-                    sendNewUserlistTasks = [userConnections[name].send(userlistMessage) for name in userlist]
-                    await asyncio.gather(*sendNewUserlistTasks)
-
-                # await websocket.send(f"USERS::{';'.join(userlist)}")
+                await handleOpen(messageContent, websocket)
             elif (messageType == "MESSAGE"):
-                for user, ws in userConnections.items():
-                    sentBy = "Unknown User: "
-                    if (ws == websocket):
-                        sentBy = f"{user}: "
-                newMessage = f"MESSAGE::{sentBy}{messageContent}"
-                sendNewMessageTasks = [userConnections[name].send(newMessage) for name in userlist]
-                await asyncio.gather(*sendNewMessageTasks)
+                await handleMessage(messageContent, websocket)
 
             # # Send the received message back to the client
             else:

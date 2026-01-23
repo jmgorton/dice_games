@@ -1,50 +1,98 @@
 body {
+
     background-color: #333;
     color: white;
 
-    #nav-buttons {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
+    h1, p {
+        text-align: center;
     }
 
-    #login-inputs {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-    }
+    #wrapper {
 
-    #chat {
         display: flex; 
-        width: 50%; 
-        flex-direction: column; 
-        border: 1px solid black;
+        width: 100%; 
+        gap: 5px; 
+        height: 60vh;
 
-        #chat-inputs {
-            display: flex; 
-            flex-direction: column;
-            margin-top: auto;
-            max-height: 10vh;
-            overflow-y: auto;
+        #nav.hidden {
+            width: 5%;
+        }
+        #nav.visible {
+            width: 20%;
+        }
 
-            .chat-input-row {
+        #nav {
+            /* width: 20%; */
+            max-width: 20%;
+            min-width: 5%;
+            background-color: dimgray;
+
+            #toggle-nav {
+                size: 10rem;
+                margin: 10px;
+            }
+            #toggle-nav:hover {
+                cursor: pointer;
+            }
+
+            #nav-buttons {
                 display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
+        
+            #login-inputs {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
+        }
+    
+        #chat {
+            display: flex; 
+            width: 50%; 
+            flex-direction: column; 
+            border: 1px solid black;
 
-                .chat-input-text {
-                    flex-grow: 1;
-                }
-
-                .chat-input-send {
-                    max-width: fit-content;
+            #chatbox {
+                max-height: 80%;
+                overflow-y: auto;
+            }
+    
+            #chat-inputs {
+                display: flex; 
+                flex-direction: column;
+                margin-top: auto;
+                /* max-height: 10vh; */
+                max-height: 20%;
+                overflow-y: auto;
+    
+                .chat-input-row {
+                    display: flex;
+    
+                    .chat-input-text {
+                        flex-grow: 1;
+                    }
+    
+                    .chat-input-send {
+                        max-width: fit-content;
+                    }
                 }
             }
         }
-    }
-}
 
-.dynamic-link:link { color: cyan; }
-.dynamic-link:visited { color: limegreen; }
-.dynamic-link:hover { color: orange; }
-.dynamic-link:active { color: hotpink; }
-.dynamic-link { margin: 8px; }
+        #userlistbox {
+            border: 1px solid black; 
+            width: 20%; 
+            height: 100%;
+        }
+    }
+
+    .dynamic-link:link { color: cyan; }
+    .dynamic-link:visited { color: limegreen; }
+    .dynamic-link:hover { color: orange; }
+    .dynamic-link:active { color: hotpink; }
+    .dynamic-link { margin: 8px; }
+
+}
