@@ -58,6 +58,30 @@ body {
             #chatbox {
                 max-height: 80%;
                 overflow-y: auto;
+                display: flex;
+                flex-direction: column;
+                /* justify-content: flex-start; */
+
+                div {
+                    border-radius: 12px;
+                    background-color: gold;
+                    color: black;
+                    max-width: fit-content;
+                    margin: 10px auto;
+                    padding: 4px;
+                }
+
+                div.sender-self {
+                    background-color: blue;
+                    color: white;
+                    align-self: flex-end;
+                }
+
+                div.sender-other {
+                    background-color: bisque;
+                    color: black;
+                    align-self: flex-start;
+                }
             }
     
             #chat-inputs {

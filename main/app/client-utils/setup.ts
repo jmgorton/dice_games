@@ -17,10 +17,15 @@ import {
 // // window.connectPyWSS = connectPyWSS;
 // // approach 2 (better): remove inline onclick attribute, attach event listener here
 
+const loc = window.location;
+const protocol = loc.protocol; // === "https:" ? "wss:" : "ws:"; 
+const host = loc.host; // ensure the browser connects to the same port nginx is listening on 
+const URL = `${protocol}//${host}`; 
+
 document.addEventListener("DOMContentLoaded", async () => {
     const hostnameEl = document.getElementById("hostname")
     if (hostnameEl) {
-        const hostnameResponse = await fetch('http://localhost:1313/hostname');
+        const hostnameResponse = await fetch(`${URL}/hostname`);
         // hostnameEl.innerText = await hostnameResponse.text();
         if (hostnameResponse.ok || hostnameResponse.status == 200) {
             hostnameEl.innerText = await hostnameResponse.text();
@@ -39,7 +44,7 @@ const uptimeEl = document.getElementById("uptime");
 const updateUptime = async () => {
     if (!uptimeEl) return;
     // TODO use window.loc or something
-    const uptimeResponse = await fetch('http://localhost:1313/uptime');
+    const uptimeResponse = await fetch(`${URL}/uptime`);
     if (uptimeResponse.status == 200) uptimeEl.innerText = await uptimeResponse.text();
 }
 

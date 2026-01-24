@@ -175,6 +175,18 @@ function wssOnConnection(this: WebSocketServer, ws: WebSocket, request: http.Inc
         // });
     }
 
+    const broadcastExcludeSelf = (msg: any) => {
+        console.log(`Broadcasting (excluding self) to ${wss.clients.size - 1} client(s)`);
+        wss.clients.forEach(function each(client) { 
+            if (client !== ws && client.readyState === WebSocket.OPEN) {
+                // client.send(`USERS::${request.socket.remoteAddress ?? 'Unknown'}`)
+                client.send(msg);
+            } else {
+                // console.log(`Client ${client} not ready... ${client.readyState}`)
+            }
+        });
+    }
+
     // listener for message of expected format: `{{type}}::{{data}}` 
     const stringMessageParser = (event: WebSocket.MessageEvent): MessageIn | undefined => {
         // console.log(`MessageEvent: ${event}`);
@@ -321,14 +333,15 @@ function wssOnConnection(this: WebSocketServer, ws: WebSocket, request: http.Inc
                 broadcast(messageOut);
                 break;
             case "MESSAGE":
-                const sender = clients[messageIn.id] ?? clients[clientId];
+                const sender = clients[messageIn.id]; //  ?? clients[clientId];
                 let msgOut = {
                     type: 'message',
                     text: messageIn.text,
                     name: sender?.username ?? 'unknown', // ?? 
                     date: Date.now(),
                 }
-                broadcast(JSON.stringify(msgOut));
+                broadcastExcludeSelf(JSON.stringify(msgOut));
+                ws.send(JSON.stringify({ ...msgOut, id: messageIn.id }))
                 break;
             case "ECHO":
                 // console.log(`Failed to determine message type for input message: ${data}`)

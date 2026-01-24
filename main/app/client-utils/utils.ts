@@ -73,10 +73,10 @@ function jsOnMessage(this: WebSocket, evt: MessageEvent<any>) {
     onMessage.call(this, evt, "play");
 };
 
-const validInputMessageTypes = ["ID", "USERS", "USERLIST", "MESSAGE", "ECHO"];
-type MessageTypeFromClient = typeof validInputMessageTypes[number];
+export const validInputMessageTypes = ["ID", "USERS", "USERLIST", "MESSAGE", "ECHO"];
+export type MessageTypeFromClient = typeof validInputMessageTypes[number];
 
-interface MessageIn {
+export interface MessageIn {
     [key: string]: any;
     type: MessageTypeFromClient;
     content?: string;
@@ -142,11 +142,12 @@ function onMessage(this: WebSocket, event: MessageEvent<any>, source: string) {
             updateUserlistBox(...Object.values(targetUserLists))
             break;
         case 'MESSAGE':
-            if ('date' in messageIn || 'name' in messageIn || 'text' in messageIn) {
-                addChatMessageToChatBox(`(${messageIn.name ?? 'unknown user'} at ${messageIn.date ? new Date(messageIn.date).toLocaleTimeString() : 'unknown time'}): ${messageIn.text ?? messageIn.content ?? 'unknown'}`);
-            } else if ('content' in messageIn) {
-                addChatMessageToChatBox(messageIn.content);
-            }
+            // if ('date' in messageIn || 'name' in messageIn || 'text' in messageIn) {
+            //     addChatMessageToChatBox(`(${messageIn.name ?? 'unknown user'} at ${messageIn.date ? new Date(messageIn.date).toLocaleTimeString() : 'unknown time'}): ${messageIn.text ?? messageIn.content ?? 'unknown'}`);
+            // } else if ('content' in messageIn) {
+            //     addChatMessageToChatBox(messageIn.content);
+            // }
+            addChatMessageToChatBox(messageIn);
             break;
         default:
             console.log(`Unknown type on message: ${messageIn}`)
@@ -260,8 +261,8 @@ export function sendMessage(evt?: Event, clientId?: string) {
     // ws.send(`MESSAGE::${textEl.value}`);
     if (clientId) { // && connections && clientId in connections) {
         console.log(`Sending directly to socket w clientId: ${clientId}`);
-        connections[clientId]?.socket.send(`MESSAGE::${textEl.value}`);
-        // connections[clientId]?.send(JSON.stringify({ ...msg, id: clientId }));
+        // connections[clientId]?.socket.send(`MESSAGE::${textEl.value}`);
+        connections[clientId]?.socket.send(JSON.stringify({ ...msg, id: clientId }));
     } else {
         console.log(`Sending to all ${connections.length} connections.`);
         for (const [clientId, conn] of Object.entries(connections)) {

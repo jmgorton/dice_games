@@ -3,6 +3,11 @@ import {
     sendMessage,
 } from './utils.js'
 
+import type {
+    MessageIn,
+    MessageTypeFromClient,
+} from './utils.js'
+
 // function enableChatInput() {
 //     const textEl: HTMLElement | null = document.getElementById("text");
 //     if (textEl) (textEl as HTMLInputElement).disabled = false;
@@ -82,15 +87,24 @@ export function updateUserlistBox(...users: (string | string[])[]) {
     // userlistBoxEl.innerHTML = `<ul>${newUserListHTMLItems.join('')}</ul>`;
 }
 
-export function addChatMessageToChatBox(message: string) {
+export function addChatMessageToChatBox(message: string | MessageIn) {
     const chatboxEl = document.getElementById("chatbox");
     if (!chatboxEl) return;
     const newMsgDiv = document.createElement("div");
-    newMsgDiv.style.borderRadius = "12px";
-    newMsgDiv.style.backgroundColor = "blue";
-    newMsgDiv.style.maxWidth = "fit-content";
-    newMsgDiv.style.margin = "10px auto";
-    newMsgDiv.style.padding = "4px";
-    newMsgDiv.innerText = message;
+
+    let messageContent;
+    if (typeof message !== 'string') {
+        const messageSender = message.name ?? 'unknown user';
+        let messageDate = 'unknown time';
+        if (message.date) messageDate = new Date(message.date).toLocaleTimeString();
+        messageContent = message.text ?? message.content ?? 'unknown';
+        newMsgDiv.innerText = `(${messageSender} at ${messageDate}): ${messageContent}`;
+        if ('id' in message && message.id) newMsgDiv.classList.add('sender-self');
+        else newMsgDiv.classList.add('sender-other');
+    } else {
+        newMsgDiv.innerText = message;
+    }
+
+    // newMsgDiv.innerText = messageContent;
     chatboxEl.appendChild(newMsgDiv);
 }
