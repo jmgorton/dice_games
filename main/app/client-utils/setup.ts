@@ -105,18 +105,6 @@ document.addEventListener('visibilitychange', () => {
 //     }
 // });
 
-const buildConnectButtons = (target: string) => {
-    const textInputAttrs = {
-        type: "text",
-        maxLength: 20,
-        placeholder: "Enter a username...",
-    };
-    const buttonInputAttrs = {
-        type: "button",
-        name: "login",
-    };
-}
-
 // document.addEventListener("DOMContentLoaded", () => {
 //     const websockButtonAttrs = {
 //         "textInput": {
@@ -187,22 +175,10 @@ const hiddenButtons: HTMLInputElement[] = [];
 const toggleShowConnectionOptions = (show?: boolean) => {
     showConnOptions = !showConnOptions;
     if (show === undefined) show = showConnOptions;
-    // const connInputOptions = document.getElementById('connection-input-options');
-    // if (!(connInputOptions instanceof HTMLDivElement)) return;
-    // // const optionPlay = document.getElementById('connection-input-send')?.cloneNode();
-    // for (const target of ["play","collab"]) {
-    //     const option = document.createElement("input");
-    //     option.type = "button";
-    //     option.value = `/${target}`;
-    //     option.onclick = () => connect(target);
-    //     option.style.display = show ? "flex" : "none";
-    //     connInputOptions.appendChild(option);
-    // }
     for (const button of hiddenButtons) {
         button.style.display = show ? 'flex' : 'none';
     }
-}
-
+};
 
 document.addEventListener("DOMContentLoaded", () => {
     const connectionInputName = document.getElementById("connection-input-text");
@@ -245,13 +221,15 @@ document.addEventListener("DOMContentLoaded", () => {
     toggleNav.onclick = function (this: GlobalEventHandlers, ev: PointerEvent): any {
         // if (toggleNav.style.width = "20%") {
         if (toggleNav.classList.contains('visible')) {
-            console.log(`Hiding nav`);
+            // console.log(`Hiding nav`);
             toggleNav.classList.remove('visible');
             toggleNav.classList.add('hidden');
+            toggleNav.innerText = ' 🫣 '; // 🫣 &#129763;
         } else {
             console.log(`Showing nav`);
             toggleNav.classList.remove('hidden');
             toggleNav.classList.add('visible');
+            toggleNav.innerText = ' 🤔💭 '; // 🤔💭
         }
 
         const navParent = toggleNav.parentElement;
