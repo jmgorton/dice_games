@@ -41,12 +41,12 @@ body {
                 justify-content: center;
             }
         
-            #login-inputs {
+            /* #login-inputs {
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
                 align-items: center;
-            }
+            } */
         }
     
         #chat {
@@ -74,13 +74,15 @@ body {
                 div.sender-self {
                     background-color: blue;
                     color: white;
-                    align-self: flex-end;
+                    /* align-self: flex-end; */
+                    margin-left: auto;
                 }
 
                 div.sender-other {
                     background-color: bisque;
                     color: black;
-                    align-self: flex-start;
+                    /* align-self: flex-start; */
+                    margin-right: auto;
                 }
             }
     
@@ -106,10 +108,44 @@ body {
             }
         }
 
-        #userlistbox {
+        #connection-info {
+            display: flex;
+            flex-direction: column;
             border: 1px solid black; 
             width: 20%; 
-            height: 100%;
+
+            #userlistbox {
+                /* height: 100%; */
+                max-height: 95%;
+                overflow-y: auto;
+            }
+
+            #connection-input {
+                margin-top: auto;
+                display: flex;
+
+                #connection-input-options {
+                    display: flex;
+                    flex-direction: column-reverse;
+                    position: relative;
+                }
+
+                #connection-input-text {
+                    flex-grow: 1
+                }
+
+                #connection-input-send {
+                    max-width: fit-content;
+                }
+            }
+
+            /* #connection-input:first-child {
+                flex-grow: 1;
+            }
+
+            #connection-input:last-child {
+                max-width: fit-content;
+            } */
         }
     }
 

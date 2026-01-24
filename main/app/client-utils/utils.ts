@@ -52,14 +52,15 @@ function onOpen (this: WebSocket, event: Event, target: string) {
 
     // console.log(`Generic onOpen successfully connected: ${event}`);
     // we're connected, so set my username (and get a clientID back)
-    const nameEl = document.getElementById(`name-${target}`) 
+    // const nameEl = document.getElementById(`name-${target}`) 
+    const nameEl = document.getElementById('connection-input-text');
     if (!nameEl || !(nameEl instanceof HTMLInputElement)) return;
     const name = nameEl.value;
 
     this.send(`OPEN::${name}`);
     // this.send(JSON.stringify({ type: "OPEN", username: name })) // only works on /play JS server so far 
     // enableChatInput();
-    // addChatInput();
+    addChatInput();
 }
 
 function pyOnMessage(this: WebSocket, event: MessageEvent<any>) { // : any 
@@ -214,14 +215,34 @@ const targetToHandlersMap: {
     "play": jsWsEventHandlers,
 }
 
+// target in Object.keys(targetToHandlersMap)
+// ❌ WRONG: Object.keys() returns an array ["collab", "play"]
+// Arrays are objects with numeric keys: 0, 1, 2, etc.
+// So "play" in ["collab", "play"] checks if "play" is a key (it's not - "0" and "1" are)
+
+// target in targetToHandlersMap
+// ✅ CORRECT: targetToHandlersMap is { "collab": ..., "play": ... }
+// So "play" in targetToHandlersMap checks if "play" is a key (it is!)
+
 export function connect(target: string) {
+    // console.log(`connect(${target})`);
     if (!browserSupportsWebSockets()) return;
     // const accepted = ["play","collab"];
     // if (!accepted.includes(target)) return;
-    if (!(target in targetToHandlersMap)) return;
+    // if (!Object.keys(targetToHandlersMap).includes(target)) {
+    if (!(target in targetToHandlersMap)) {
+        console.log(`Invalid target: ${target}. Valid options are ${Object.keys(targetToHandlersMap)}`);
+        return;
+    }
+    console.log(`Setting up sockets...`);
     const socketURL = getWebSocketUrlByURI(target);
     const socket = getSocketWithListenersByURL(socketURL, {...targetToHandlersMap[target]});
-    if (!socket) return;
+    if (!socket) {
+        console.log(`Failed to configure socket.`);
+        return;
+    } else {
+        console.log(`Configured valid socket with event listeners.`);
+    }
     // store socket in lookup by target?? store id, username, etc. as subfields? 
     // curr key is id, only stored later after socket conn gives us one 
 }

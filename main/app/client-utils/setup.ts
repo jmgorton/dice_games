@@ -117,68 +117,125 @@ const buildConnectButtons = (target: string) => {
     };
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    const websockButtonAttrs = {
-        "textInput": {
-            id: "name-auth",
-            // disabled: true,
-        },
-        "buttonInput": {
-            id: "auth-login",
-            value: "Connect (/auth)",
-            // onclick: connectWS,
-            // disabled: true,
-        },
-    };
-    const playWsButtonAttrs = {
-        "textInput": {
-            id: "name-play",
-        },
-        "buttonInput": {
-            id: "play-login",
-            value: "Connect (/play)",
-            // onclick: connectPlay,
-            onclick: () => connect("play")
-        },
-    };
-    const pyWsButtonAttrs = {
-        "textInput": {
-            id: "name-collab",
-        },
-        "buttonInput": {
-            id: "collab-login",
-            value: "Connect (/collab)",
-            // onclick: connectPyWSS,
-            onclick: () => connect("collab")
-        },
-    };
-    const buttonAttrs: any[] = [websockButtonAttrs, playWsButtonAttrs, pyWsButtonAttrs];
-    const commonAttrs = {
-        "textInput": {
-            type: "text",
-            maxLength: 20,
-            placeholder: "Enter a username...",
-        },
-        "buttonInput": {
-            type: "button",
-            name: "login",
-        }
-    }
+// document.addEventListener("DOMContentLoaded", () => {
+//     const websockButtonAttrs = {
+//         "textInput": {
+//             id: "name-auth",
+//             // disabled: true,
+//         },
+//         "buttonInput": {
+//             id: "auth-login",
+//             value: "Connect (/auth)",
+//             // onclick: connectWS,
+//             // disabled: true,
+//         },
+//     };
+//     const playWsButtonAttrs = {
+//         "textInput": {
+//             id: "name-play",
+//         },
+//         "buttonInput": {
+//             id: "play-login",
+//             value: "Connect (/play)",
+//             // onclick: connectPlay,
+//             onclick: () => connect("play")
+//         },
+//     };
+//     const pyWsButtonAttrs = {
+//         "textInput": {
+//             id: "name-collab",
+//         },
+//         "buttonInput": {
+//             id: "collab-login",
+//             value: "Connect (/collab)",
+//             // onclick: connectPyWSS,
+//             onclick: () => connect("collab")
+//         },
+//     };
+//     const buttonAttrs: any[] = [websockButtonAttrs, playWsButtonAttrs, pyWsButtonAttrs];
+//     const commonAttrs = {
+//         "textInput": {
+//             type: "text",
+//             maxLength: 20,
+//             placeholder: "Enter a username...",
+//         },
+//         "buttonInput": {
+//             type: "button",
+//             name: "login",
+//         }
+//     }
 
-    const loginButtonDiv = document.getElementById("login-inputs") as HTMLDivElement;
-    // loginButtonDiv.style.display = "flex";
-    // loginButtonDiv.style.flexDirection = "column";
-    // loginButtonDiv.style.justifyContent = "center";
-    // loginButtonDiv.style.alignItems = "center";
-    for (let i = 0; i < 3; i++) {
-        const loginInput = document.createElement("p");
-        const textInput = Object.assign(document.createElement("input"), buttonAttrs[i]["textInput"]);
-        Object.assign(textInput, commonAttrs["textInput"]);
-        loginInput.append(textInput); // append vs appendChild?? 
-        const buttonInput = Object.assign(document.createElement("input"), buttonAttrs[i]["buttonInput"]);
-        Object.assign(buttonInput, commonAttrs["buttonInput"]);
-        loginInput.append(buttonInput);
-        loginButtonDiv.appendChild(loginInput);
+//     const loginButtonDiv = document.getElementById("login-inputs") as HTMLDivElement;
+//     // loginButtonDiv.style.display = "flex";
+//     // loginButtonDiv.style.flexDirection = "column";
+//     // loginButtonDiv.style.justifyContent = "center";
+//     // loginButtonDiv.style.alignItems = "center";
+//     for (let i = 0; i < 3; i++) {
+//         const loginInput = document.createElement("p");
+//         const textInput = Object.assign(document.createElement("input"), buttonAttrs[i]["textInput"]);
+//         Object.assign(textInput, commonAttrs["textInput"]);
+//         loginInput.append(textInput); // append vs appendChild?? 
+//         const buttonInput = Object.assign(document.createElement("input"), buttonAttrs[i]["buttonInput"]);
+//         Object.assign(buttonInput, commonAttrs["buttonInput"]);
+//         loginInput.append(buttonInput);
+//         loginButtonDiv.appendChild(loginInput);
+//     }
+// });
+
+let showConnOptions: boolean = false;
+const hiddenButtons: HTMLInputElement[] = [];
+const toggleShowConnectionOptions = (show?: boolean) => {
+    showConnOptions = !showConnOptions;
+    if (show === undefined) show = showConnOptions;
+    // const connInputOptions = document.getElementById('connection-input-options');
+    // if (!(connInputOptions instanceof HTMLDivElement)) return;
+    // // const optionPlay = document.getElementById('connection-input-send')?.cloneNode();
+    // for (const target of ["play","collab"]) {
+    //     const option = document.createElement("input");
+    //     option.type = "button";
+    //     option.value = `/${target}`;
+    //     option.onclick = () => connect(target);
+    //     option.style.display = show ? "flex" : "none";
+    //     connInputOptions.appendChild(option);
+    // }
+    for (const button of hiddenButtons) {
+        button.style.display = show ? 'flex' : 'none';
+    }
+}
+
+
+document.addEventListener("DOMContentLoaded", () => {
+    const connectionInputName = document.getElementById("connection-input-text");
+    if (!(connectionInputName instanceof HTMLInputElement)) return;
+    connectionInputName.maxLength = 20;
+    connectionInputName.placeholder = 'Enter a username...';
+    // connectionInputName.onkeyup // TODO 
+    const connectionInputSend = document.getElementById("connection-input-send");
+    if (!(connectionInputSend instanceof HTMLInputElement)) return;
+    connectionInputSend.value = 'Connect';
+    // connectionInputSend.onclick = () => toggleShowConnectionOptions(true); // alert('click'); 
+    connectionInputSend.onmouseover = () => toggleShowConnectionOptions(); // console.log('mouseover');
+    // connectionInputSend.onmouseout = () => toggleShowConnectionOptions(false); // LOL 
+    // connectionInputSend.onmouseenter // does not bubble from children (this el has no children, so no diff)
+    const connInputOptions = document.getElementById('connection-input-options');
+    if (!(connInputOptions instanceof HTMLDivElement)) return;
+    // const optionPlay = document.getElementById('connection-input-send')?.cloneNode();
+    // for (const target of ["play","collab"]) {
+    const targets: string[] = ["play","collab"];
+    for (let i = 0; i < targets.length; i++) {
+        const target: string = targets[i] ?? '';
+        const option = document.createElement("input");
+        option.type = "button";
+        option.value = `/${target}`;
+        option.style.position = "absolute";
+        option.style.right = `${connectionInputSend.style.right}`;
+        option.style.width = `${connectionInputSend.offsetWidth}px`;
+        option.style.top = `${(Number(connectionInputSend.style.top) ?? 0) - (connectionInputSend.offsetHeight * (i + 1))}px`;
+        option.onclick = () => {connect(target)};
+        option.style.display = "none";
+        connInputOptions.appendChild(option);
+        // connInputOptions.prepend(option); // use column-reverse flex-direction instead 
+        hiddenButtons.push(option);
     }
 });
 

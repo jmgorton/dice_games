@@ -18,13 +18,13 @@
     <div id="wrapper">
       <!-- nav:  align-items: start; justify-content: start; -->
       <div id="nav" >
-        <div id="toggle-nav" class="visible">🗺️</div>
+        <div id="toggle-nav" class="visible"> 🤔💭🗺️ </div>
         <div id="nav-buttons" >
-          <a class="dynamic-link" href="/auth">/auth</a>
-          <a class="dynamic-link" href="/play">/play</a>
-          <a class="dynamic-link" href="/collab">/collab</a>
+          <a class="dynamic-link" href="/auth"> &#128274; /auth</a> <!-- &#1F512; (🔒) Lock -->
+          <a class="dynamic-link" href="/play"> &#127922; /play</a> <!-- U+1F3B2; (🎲) Game Die -->
+          <a class="dynamic-link" href="/collab"> &#129309; /collab</a> <!-- U+1F91D; (🤝) Handshake -->
         </div>
-        <div id="login-inputs" ></div>
+        <!-- <div id="login-inputs" ></div> -->
       </div>
   
       <div id="chat">
@@ -34,7 +34,14 @@
           </div>
         </div>
       </div>
-      <div id="userlistbox"></div>
+      <!-- <div id="userlistbox"></div> -->
+       <div id="connection-info">
+        <div id="userlistbox"></div>
+        <div id="connection-input">
+          <input id="connection-input-text" type="text">
+          <div id="connection-input-options"><input id="connection-input-send" type="button"></div>
+        </div>
+       </div>
     </div>
   </body>
 </html>
