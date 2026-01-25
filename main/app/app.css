@@ -64,19 +64,11 @@ body {
         #wrapper {
     
             display: flex; 
+            /* justify-content: space-around; */
             width: 100%; 
             gap: 5px; 
             height: 60vh;
             padding-top: 20px;
-    
-            /* #nav {
-                #login-inputs {
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: center;
-                    align-items: center;
-                }
-            } */ 
         
             #chat {
                 display: flex; 
@@ -86,7 +78,7 @@ body {
                 border: 1px solid black;
     
                 #chatbox {
-                    max-height: 80%;
+                    /* max-height: 80%; */
                     overflow-y: auto;
                     display: flex;
                     flex-direction: column;
@@ -118,22 +110,28 @@ body {
         
                 #chat-inputs {
                     display: flex; 
-                    flex-direction: column;
+                    /* flex-direction: column; */
                     margin-top: auto;
                     /* max-height: 10vh; */
-                    max-height: 20%;
-                    overflow-y: auto;
+                    /* max-height: 20%; */
+                    /* overflow-y: auto; */ 
+                    /* overflow auto breaks button popup  */
         
-                    .chat-input-row {
+                    #chat-input-text {
+                        flex-grow: 1;
+                    }
+
+                    #chat-input-send-options {
                         display: flex;
+                        flex-direction: column-reverse;
+                        position: relative;
+                        /* max-width: fit-content; */
+                        overflow: visible;
+
         
-                        .chat-input-text {
-                            flex-grow: 1;
-                        }
-        
-                        .chat-input-send {
+                        /* .chat-input-send {
                             max-width: fit-content;
-                        }
+                        } */
                     }
                 }
             }

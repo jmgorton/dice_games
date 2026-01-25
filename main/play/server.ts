@@ -329,7 +329,7 @@ function wssOnConnection(this: WebSocketServer, ws: WebSocket, request: http.Inc
                 // });
                 let messageOut = JSON.stringify(makeUserListMessage());
                 // wss.clients.add(this);
-                ws.send(JSON.stringify({ type: "id", id: clientId })); // target undefined ??? 
+                ws.send(JSON.stringify({ type: "id", id: clientId, name: messageIn.username })); // target undefined ??? 
                 broadcast(messageOut);
                 break;
             case "MESSAGE":
@@ -338,7 +338,8 @@ function wssOnConnection(this: WebSocketServer, ws: WebSocket, request: http.Inc
                     type: 'message',
                     text: messageIn.text,
                     name: sender?.username ?? 'unknown', // ?? 
-                    date: Date.now(),
+                    // date: Date.now(),
+                    date: messageIn.date ?? Date.now(),
                 }
                 broadcastExcludeSelf(JSON.stringify(msgOut));
                 ws.send(JSON.stringify({ ...msgOut, id: messageIn.id }))

@@ -12,9 +12,10 @@ import {
 
 import {
     // enableChatInput,
-    addChatInput,
+    // addChatInput,
     updateUserlistBox,
     addChatMessageToChatBox,
+    enableChatInput,
 } from "./utils-ui.js"
 
 // import os from 'os'; // os is a Node module, not available in browser
@@ -60,7 +61,7 @@ function onOpen (this: WebSocket, event: Event, target: string) {
     this.send(`OPEN::${name}`);
     // this.send(JSON.stringify({ type: "OPEN", username: name })) // only works on /play JS server so far 
     // enableChatInput();
-    addChatInput();
+    // addChatInput();
 }
 
 function pyOnMessage(this: WebSocket, event: MessageEvent<any>) { // : any 
@@ -75,7 +76,7 @@ function jsOnMessage(this: WebSocket, evt: MessageEvent<any>) {
 };
 
 export const validInputMessageTypes = ["ID", "USERS", "USERLIST", "MESSAGE", "ECHO"];
-export type MessageTypeFromClient = typeof validInputMessageTypes[number];
+type MessageTypeFromClient = typeof validInputMessageTypes[number];
 
 export interface MessageIn {
     [key: string]: any;
@@ -121,9 +122,10 @@ function onMessage(this: WebSocket, event: MessageEvent<any>, source: string) {
     switch (messageIn.type.toUpperCase()) {
         case "ID":
             if (!('id' in messageIn)) break;
-            connections[messageIn.id] = { socket: this, target: source };
+            connections[messageIn.id] = { socket: this, target: source, name: messageIn.name };
             targetToClientId[source]?.add(messageIn.id)
-            addChatInput(messageIn.id);
+            // addChatInput(messageIn.id);
+            enableChatInput(messageIn.id, messageIn.name); // link username... 
             break;
         case 'USERS':
         case "USERLIST":
@@ -255,21 +257,19 @@ export function sendMessage(evt?: Event, clientId?: string) {
         console.error("(All) WebSocket connection(s) is (are) null. Can't send message.");
     }
 
-    // const textEl: HTMLInputElement | null = document.getElementById("text") as HTMLInputElement
-    const thisEl = evt?.currentTarget;
-    let nameOrMessageEl;
-    let textEl;
-    if (thisEl instanceof HTMLInputElement) {
-        if (thisEl.type === 'text') nameOrMessageEl = thisEl;
-        else nameOrMessageEl = thisEl.parentElement?.firstChild;
-    }
-    if (nameOrMessageEl) {
-        textEl = nameOrMessageEl as HTMLInputElement;
-    } else {
-        textEl = document.getElementById("text") as HTMLInputElement;
-    }
+    // const thisEl = evt?.currentTarget;
+    // let nameOrMessageEl;
+    // let textEl;
+    // if (thisEl instanceof HTMLInputElement) {
+    //     if (thisEl.type === 'text') nameOrMessageEl = thisEl;
+    //     else nameOrMessageEl = thisEl.parentElement?.firstChild;
+    // }
+    // if (nameOrMessageEl) {
+    //     textEl = nameOrMessageEl as HTMLInputElement;
+    // }
 
-    if (!textEl) return;
+    const textEl = document.getElementById("chat-input-text");
+    if (!textEl || !(textEl instanceof HTMLInputElement)) return;
     var msg = {
         text: textEl.value,
         type: "MESSAGE",

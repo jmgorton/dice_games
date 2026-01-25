@@ -1,7 +1,4 @@
 import {
-    // connectPyWSS,
-    // connectWS,
-    // connectPlay,
     connect,
     // sendMessage,
     // handleKey
@@ -66,116 +63,12 @@ document.addEventListener('visibilitychange', () => {
     }
 })
 
-// dark mode 
-// document.body.style.backgroundColor = '#333';
-// document.body.style.color = 'white';
-
-// const style = document.createElement('style');
-// style.innerHTML = `
-//     .dynamic-link:link { color: cyan; }
-//     .dynamic-link:visited { color: limegreen; }
-//     .dynamic-link:hover { color: orange; }
-//     .dynamic-link:active { color: hotpink; }
-//     .dynamic-link { margin: 8px; }
-// `;
-// document.head.appendChild(style);
-
-
-// generic styling 
-// document.body.style.display = 'flex';
-// document.body.style.flexDirection = 'column';
-// document.body.style.alignContent = 'center';
-// document.body.style.justifyContent = 'center';
-
-// document.addEventListener("DOMContentLoaded", () => {
-//     const buttonAttrs = [
-//         { href: "/auth", innerText: "/auth (JS)" },
-//         { href: "/play", innerText: "/play (JS Lotto Sim)" },
-//         { href: "/collab", innerText: "/collab (Python)" },
-//     ]
-//     const navButtonDiv = document.getElementById("nav-buttons") as HTMLDivElement;
-//     // navButtonDiv.style.display = "flex";
-//     // navButtonDiv.style.flexDirection = "column";
-//     // navButtonDiv.style.justifyContent = "center";
-//     for (let i = 0; i < 3; i++) {
-//         const navButton = document.createElement("a");
-//         Object.assign(navButton, buttonAttrs[i]);
-//         navButton.classList.add("dynamic-link");
-//         navButtonDiv.appendChild(navButton);
-//     }
-// });
-
-// document.addEventListener("DOMContentLoaded", () => {
-//     const websockButtonAttrs = {
-//         "textInput": {
-//             id: "name-auth",
-//             // disabled: true,
-//         },
-//         "buttonInput": {
-//             id: "auth-login",
-//             value: "Connect (/auth)",
-//             // onclick: connectWS,
-//             // disabled: true,
-//         },
-//     };
-//     const playWsButtonAttrs = {
-//         "textInput": {
-//             id: "name-play",
-//         },
-//         "buttonInput": {
-//             id: "play-login",
-//             value: "Connect (/play)",
-//             // onclick: connectPlay,
-//             onclick: () => connect("play")
-//         },
-//     };
-//     const pyWsButtonAttrs = {
-//         "textInput": {
-//             id: "name-collab",
-//         },
-//         "buttonInput": {
-//             id: "collab-login",
-//             value: "Connect (/collab)",
-//             // onclick: connectPyWSS,
-//             onclick: () => connect("collab")
-//         },
-//     };
-//     const buttonAttrs: any[] = [websockButtonAttrs, playWsButtonAttrs, pyWsButtonAttrs];
-//     const commonAttrs = {
-//         "textInput": {
-//             type: "text",
-//             maxLength: 20,
-//             placeholder: "Enter a username...",
-//         },
-//         "buttonInput": {
-//             type: "button",
-//             name: "login",
-//         }
-//     }
-
-//     const loginButtonDiv = document.getElementById("login-inputs") as HTMLDivElement;
-//     // loginButtonDiv.style.display = "flex";
-//     // loginButtonDiv.style.flexDirection = "column";
-//     // loginButtonDiv.style.justifyContent = "center";
-//     // loginButtonDiv.style.alignItems = "center";
-//     for (let i = 0; i < 3; i++) {
-//         const loginInput = document.createElement("p");
-//         const textInput = Object.assign(document.createElement("input"), buttonAttrs[i]["textInput"]);
-//         Object.assign(textInput, commonAttrs["textInput"]);
-//         loginInput.append(textInput); // append vs appendChild?? 
-//         const buttonInput = Object.assign(document.createElement("input"), buttonAttrs[i]["buttonInput"]);
-//         Object.assign(buttonInput, commonAttrs["buttonInput"]);
-//         loginInput.append(buttonInput);
-//         loginButtonDiv.appendChild(loginInput);
-//     }
-// });
-
 let showConnOptions: boolean = false;
-const hiddenButtons: HTMLInputElement[] = [];
+const hiddenConnButtons: HTMLInputElement[] = [];
 const toggleShowConnectionOptions = (show?: boolean) => {
     showConnOptions = !showConnOptions;
     if (show === undefined) show = showConnOptions;
-    for (const button of hiddenButtons) {
+    for (const button of hiddenConnButtons) {
         button.style.display = show ? 'flex' : 'none';
     }
 };
@@ -189,7 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const connectionInputSend = document.getElementById("connection-input-send");
     if (!(connectionInputSend instanceof HTMLInputElement)) return;
     connectionInputSend.value = 'Connect';
-    // connectionInputSend.onclick = () => toggleShowConnectionOptions(true); // alert('click'); 
+    connectionInputSend.onclick = () => toggleShowConnectionOptions(true); // alert('click'); 
     connectionInputSend.onmouseover = () => toggleShowConnectionOptions(); // console.log('mouseover');
     // connectionInputSend.onmouseout = () => toggleShowConnectionOptions(false); // LOL 
     // connectionInputSend.onmouseenter // does not bubble from children (this el has no children, so no diff)
@@ -204,14 +97,14 @@ document.addEventListener("DOMContentLoaded", () => {
         option.type = "button";
         option.value = `/${target}`;
         option.style.position = "absolute";
-        option.style.right = `${connectionInputSend.style.right}`;
+        option.style.right = "0";
         option.style.width = `${connectionInputSend.offsetWidth}px`;
-        option.style.top = `${(Number(connectionInputSend.style.top) ?? 0) - (connectionInputSend.offsetHeight * (i + 1))}px`;
-        option.onclick = () => {connect(target)};
+        option.style.bottom = `${connectionInputSend.offsetHeight * (i + 1)}px`;
+        option.onclick = () => {connect(target); toggleShowConnectionOptions(false);};
         option.style.display = "none";
         connInputOptions.appendChild(option);
         // connInputOptions.prepend(option); // use column-reverse flex-direction instead 
-        hiddenButtons.push(option);
+        hiddenConnButtons.push(option);
     }
 });
 

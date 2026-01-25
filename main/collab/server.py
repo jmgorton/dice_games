@@ -11,6 +11,7 @@ from typing import List
 from collections import defaultdict
 from uuid import uuid4
 import json
+import datetime
 
 # logging.basicConfig(level=logging.INFO)
 # logger = logging.getLogger(__name__)
@@ -31,6 +32,10 @@ logger.addHandler(QueueHandler(q))
 # userlist: List[str] = []
 # userConnections = {} # defaultdict(None) # {} # does every entry point to the same websocket??? 
 connections = defaultdict(None)
+# connections structure: key: clientId
+#   "name": username
+#   "socket": websocket
+
 
 # def addUserToUserlist(user: str):
 #     userlist.append(user)
@@ -45,23 +50,78 @@ async def broadcast(message: str):
     sendTasks = [connection["socket"].send(message) for connection in connections.values()]
     await asyncio.gather(*sendTasks)
 
-async def handleOpen(username, ws):
-    newId = str(uuid4())[:10]
+async def broadcastExceptMe(message: str, ws):
+    sendTasks = []
+    for connection in connections.values():
+        if connection["socket"] == ws: continue
+        sendTasks.push(connection["socket"].send(message))
+    await asyncio.gather(*sendTasks)
+
+
+async def handleOpen(messageIn, ws):
+    if "username" in messageIn: username = messageIn["username"]
+    else: username = messageIn["content"]
+    newId = str(uuid4())[:17]
     connections[newId] = { "name": username, "socket": ws }
-    idMessageOut = json.dumps({"type": "id", "id": newId})
+    idMessageOut = json.dumps({"type": "id", "id": newId, "name": username })
     await ws.send(idMessageOut)
     usersMessageOut = json.dumps({ "type": "userlist", "users": ';'.join([connection["name"] for connection in connections.values()])})
     await broadcast(usersMessageOut)
 
-async def handleMessage(message, ws):
-    sentBy = "unknown user"
-
+async def handleMessage(messageIn, ws):
+    # sentBy = "unknown user"
     # for user, ws in userConnections.items():
     #     sentBy = "Unknown User: "
     #     if (ws == websocket):
     #         sentBy = f"{user}: "
-    newMessage = f"MESSAGE::{sentBy}{message}"
-    await broadcast(newMessage)
+    # newMessage = f"MESSAGE::{sentBy}{message}"
+    sender = "unknown user"
+    sentAt = "unknown time"
+    clientId = messageIn["id"]
+    if clientId and connections[clientId]: # "id" in messageIn and 
+        sender = connections[clientId]["name"]
+    if messageIn["date"]:
+        sentAt = datetime.datetime.fromtimestamp(messageIn["date"] // 1000).strftime('%Y-%m-%d %H:%M:%S')
+    messageOut = {
+        "type": "message",
+        "text": messageIn["text"] if messageIn["text"] else messageIn["content"],
+        "name": sender,
+        "date": sentAt,
+    }
+    # await broadcast(messageOut)
+    await broadcastExceptMe(json.dumps(messageOut), ws)
+    messageOut["id"] = clientId
+    await ws.send(json.dumps(messageOut))
+
+def parseMessage(message):
+    try:
+        messageIn = json.loads(message)
+        return messageIn
+    except json.JSONDecodeError:
+        try:
+            splitMessage = message.split("::")
+            if not splitMessage or len(splitMessage) != 2:
+                return {
+                    "type": "ECHO",
+                    "content": message,
+                }
+            return {
+                "type": splitMessage[0],
+                "content": splitMessage[1],
+            }
+        except ValueError:
+            # only really thrown if separator is an empty string... not the case here
+            # messageType = "ECHO"
+            return {
+                "type": "ECHO",
+                "content": message,
+            }
+    except TypeError:
+        # input not a str, bytes, or bytearray object 
+        return {
+            "type": "ECHO",
+            "content": message,
+        }
 
 # This function is the handler for each client connection
 async def echo_handler(websocket):
@@ -78,21 +138,23 @@ async def echo_handler(websocket):
         async for message in websocket:
             logger.info(f"Received message: {message}")
 
-            try:
-                [messageType, messageContent] = message.split("::")
-            except ValueError:
-                try:
-                    messageJson = json.loads(message)
-                    messageType = messageJson["type"]
-                except ValueError:
-                    messageType = "ECHO"
+            # try:
+            #     [messageType, messageContent] = message.split("::")
+            # except ValueError:
+            #     try:
+            #         messageJson = json.loads(message)
+            #         messageType = messageJson["type"]
+            #     except ValueError:
+            #         messageType = "ECHO"
+            messageIn = parseMessage(message)
+            if not messageIn: return
                     
                 # messageContent = message
 
-            if (messageType == "OPEN"):
-                await handleOpen(messageContent, websocket)
-            elif (messageType == "MESSAGE"):
-                await handleMessage(messageContent, websocket)
+            if (messageIn["type"] == "OPEN"):
+                await handleOpen(messageIn, websocket)
+            elif (messageIn["type"] == "MESSAGE"):
+                await handleMessage(messageIn, websocket)
 
             # # Send the received message back to the client
             else:
