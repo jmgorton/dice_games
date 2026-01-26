@@ -37,6 +37,8 @@ export function validateToken(token: string): boolean {
     if (!token || typeof token !== 'string') {
         return false;
     }
+    console.log(`Validating token: ${token}...`)
+    console.log(`Valid options: ${getAllTokens()}`);
     return tokenStore.has(token);
 }
 

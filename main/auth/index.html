@@ -1,11 +1,262 @@
 <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dice Games - Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-<html>
-    <head>
-        <title>Login</title>
-        <meta charset="utf-8" />
-    </head>
-    <body>
-        <h1>Login to Dice Games</h1>
-    </body>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #667eea;
+            background-color: #f9f9f9;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .message {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 6px;
+            text-align: center;
+            display: none;
+            font-size: 14px;
+        }
+
+        .message.error {
+            background-color: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+            display: block;
+        }
+
+        .message.success {
+            background-color: #efe;
+            color: #3c3;
+            border: 1px solid #cfc;
+            display: block;
+        }
+
+        .message.loading {
+            background-color: #eef;
+            color: #33c;
+            border: 1px solid #ccf;
+            display: block;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid #33c;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>Dice Games</h1>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    placeholder="Enter password"
+                    autocomplete="off"
+                    required
+                >
+            </div>
+            <button type="submit" id="submitBtn">Login</button>
+        </form>
+        <div id="message" class="message"></div>
+    </div>
+
+    <script>
+        class DiceGamesAuth {
+            constructor(authServerUrl = 'http://localhost:1313') {
+                this.authServerUrl = authServerUrl;
+                this.token = null; // localStorage.getItem('diceGamesAuthToken') || null;
+            }
+
+            async login(password) {
+                try {
+                    const response = await fetch(`${this.authServerUrl}/auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ password })
+                    });
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.error || 'Login failed');
+                    }
+
+                    const data = await response.json();
+                    this.token = data.token;
+
+                    if (!this.token) {
+                        throw new Error('Unable to fetch token.');
+                    }
+
+                    localStorage.setItem('diceGamesAuthToken', this.token);
+                    console.log('Login successful');
+                    return this.token;
+                } catch (err) {
+                    console.error('Login error:', err);
+                    throw err;
+                }
+            }
+
+            getToken() {
+                return this.token;
+            }
+
+            isAuthenticated() {
+                return !!this.token;
+            }
+        }
+
+        const auth = new DiceGamesAuth();
+        const loginForm = document.getElementById('loginForm');
+        const passwordInput = document.getElementById('password');
+        const messageEl = document.getElementById('message');
+        const submitBtn = document.getElementById('submitBtn');
+
+        // If already authenticated, redirect
+        if (auth.isAuthenticated()) {
+            redirectToApp();
+        }
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const password = passwordInput.value.trim();
+            if (!password) {
+                showMessage('Please enter a password', 'error');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            showMessage('Logging in...', 'loading');
+
+            try {
+                await auth.login(password);
+                showMessage('Login successful! Redirecting...', 'success');
+                setTimeout(() => redirectToApp(), 1500);
+            } catch (err) {
+                submitBtn.disabled = false;
+                showMessage(err.message || 'Login failed', 'error');
+                passwordInput.value = '';
+                passwordInput.focus();
+            }
+        });
+
+        function showMessage(text, type) {
+            messageEl.textContent = text;
+            messageEl.className = `message ${type}`;
+            
+            if (type === 'loading') {
+                messageEl.innerHTML = `<span class="loading-spinner"></span>${text}`;
+            }
+        }
+
+        function redirectToApp() {
+            // Redirect to the app server with token in query parameter
+            // (Headers cannot be set during browser navigation, so we use query parameter)
+            // The middleware accepts tokens via either Authorization header or ?token query param
+            const token = auth.getToken();
+            if (!token) {
+                showMessage('Error: No token found', 'error');
+                return;
+            }
+            window.location.href = `http://localhost:1313/play?token=${encodeURIComponent(token)}`;
+        }
+    </script>
+</body>
 </html>

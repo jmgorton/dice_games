@@ -262,18 +262,30 @@ const authenticator = (request: http.IncomingMessage, response: http.ServerRespo
         if (authHeader.length > 1) return next(new Error('Too many auth tokens...??'));
         else authHeader = authHeader[0];
     }
+    console.log(`\n***** BEFORE *****`)
+    console.log(`Auth Header: ${authHeader}`);
+    console.log(`Request URL: ${request.url}`);
+    console.log(`Request.Headers.Host: ${request.headers.host}`)
+    console.log(`Search Params: ${new URL(request.url || '', `http://${request.headers.host}`).searchParams}`);
     const token = authHeader?.replace('Bearer ', '') || 
-                  new URL(request.url || '', `http://${request.headers.host}`).searchParams.get('token');
+        new URL(request.url || '', `http://${request.headers.host}`).searchParams.get('token');
 
-    // if (!token || !validateToken(token as string)) {
-    //     return next(new Error('Unauthorized: Invalid or missing authentication token'));
-    // }
+    console.log(`***** AFTER *****`)
+    console.log(`Auth Header: ${authHeader}`);
+    console.log(`Request URL: ${request.url}`);
+    console.log(`Request.Headers.Host: ${request.headers.host}`)
+    console.log(`Search Params: ${new URL(request.url || '', `http://${request.headers.host}`).searchParams}`);
+    console.log(`Received token: ${token}`);
+    console.log(``);
+    if (!token || !validateToken(token as string)) {
+        return next(new Error('Unauthorized: Invalid or missing authentication token'));
+    }
 
-    // // Update token's last activity time
-    // updateTokenActivity(token as string);
+    // Update token's last activity time
+    updateTokenActivity(token as string);
     
-    // // Optionally attach token to request for downstream handlers
-    // (request as any).authToken = token;
+    // Optionally attach token to request for downstream handlers
+    (request as any).authToken = token;
     
     return next();
 }

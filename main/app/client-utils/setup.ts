@@ -19,10 +19,23 @@ const protocol = loc.protocol; // === "https:" ? "wss:" : "ws:";
 const host = loc.host; // ensure the browser connects to the same port nginx is listening on 
 const URL = `${protocol}//${host}`; 
 
+/**
+ * Helper to add auth token to fetch requests
+ */
+function getAuthHeaders(): HeadersInit {
+    const token = localStorage.getItem('diceGamesAuthToken');
+    if (!token) return {};
+    return {
+        'Authorization': `Bearer ${token}`
+    };
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
     const hostnameEl = document.getElementById("hostname")
     if (hostnameEl) {
-        const hostnameResponse = await fetch(`${URL}/hostname`);
+        const hostnameResponse = await fetch(`${URL}/hostname`, {
+            headers: getAuthHeaders()
+        });
         // hostnameEl.innerText = await hostnameResponse.text();
         if (hostnameResponse.ok || hostnameResponse.status == 200) {
             hostnameEl.innerText = await hostnameResponse.text();
@@ -41,7 +54,9 @@ const uptimeEl = document.getElementById("uptime");
 const updateUptime = async () => {
     if (!uptimeEl) return;
     // TODO use window.loc or something
-    const uptimeResponse = await fetch(`${URL}/uptime`);
+    const uptimeResponse = await fetch(`${URL}/uptime`, {
+        headers: getAuthHeaders()
+    });
     if (uptimeResponse.status == 200) uptimeEl.innerText = await uptimeResponse.text();
 }
 
