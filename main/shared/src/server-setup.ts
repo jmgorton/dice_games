@@ -12,7 +12,17 @@ import type {
     WebSocketServerEvents, 
     WebSocketServerEventListenerMap 
 } from './types.js';
+import AuthClient from './auth-client.js';
 import { validateToken, updateTokenActivity } from './token-store.js';
+
+// Initialize the auth client for distributed authentication
+// Should be configured via environment variables or server setup
+let authClient: AuthClient | null = null;
+
+export function initializeAuthClient(config: { authServerUrl: string; cacheTTL?: number }) {
+    authClient = new AuthClient(config);
+    console.log(`[Server] Auth client initialized with auth server: ${config.authServerUrl}`);
+}
 
 
 // Two main categories of events (and listeners): those on the WebSocketServer instance 
@@ -277,17 +287,44 @@ const authenticator = (request: http.IncomingMessage, response: http.ServerRespo
     console.log(`Search Params: ${new URL(request.url || '', `http://${request.headers.host}`).searchParams}`);
     console.log(`Received token: ${token}`);
     console.log(``);
-    if (!token || !validateToken(token as string)) {
-        return next(new Error('Unauthorized: Invalid or missing authentication token'));
+
+    // Validate token using distributed auth if available, otherwise fall back to local validation
+    async function validateTokenAsync() {
+        if (!token) {
+            return next(new Error('Unauthorized: Missing authentication token'));
+        }
+
+        try {
+            let isValid: boolean;
+
+            if (authClient) {
+                // Use distributed auth client (queries auth server with local caching)
+                console.log(`[Authenticator] Using distributed auth client`);
+                isValid = await authClient.validateToken(token as string);
+            } else {
+                // Fall back to local token validation (single-host mode)
+                console.log(`[Authenticator] Using local token validation (auth client not initialized)`);
+                isValid = validateToken(token as string);
+                if (isValid) {
+                    updateTokenActivity(token as string);
+                }
+            }
+
+            if (!isValid) {
+                return next(new Error('Unauthorized: Invalid or expired authentication token'));
+            }
+
+            // Attach token to request for downstream handlers
+            (request as any).authToken = token;
+            return next();
+        } catch (err: any) {
+            console.error(`[Authenticator] Error validating token:`, err);
+            return next(new Error(`Authorization failed: ${err.message}`));
+        }
     }
 
-    // Update token's last activity time
-    updateTokenActivity(token as string);
-    
-    // Optionally attach token to request for downstream handlers
-    (request as any).authToken = token;
-    
-    return next();
+    // Call the async validation
+    validateTokenAsync();
 }
 
 const errorHandler = (err: Error, request: http.IncomingMessage, response: http.ServerResponse, next: (err?: Error) => void) => {

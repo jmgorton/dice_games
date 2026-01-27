@@ -5,7 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { createToken, validateToken, revokeToken } from '../shared/dist/token-store.js';
+import { createToken, validateToken, revokeToken, getTokenInfo } from '../shared/dist/token-store.js';
 
 // __dirname is a CommonJS-specific global variable, not available in ES module scope
 // can replicate the functionality using the `import.meta.url` property and the 
@@ -102,6 +102,50 @@ async function handleLogout(req: http.IncomingMessage, res: http.ServerResponse)
 }
 
 /**
+ * Handle POST /auth/validate
+ * Central validation endpoint for distributed architecture
+ * Other services call this to verify tokens
+ * 
+ * Expects: { token: string }
+ * Returns: { valid: boolean, expiresAt?: number, issuedAt?: number }
+ */
+async function handleValidate(req: http.IncomingMessage, res: http.ServerResponse) {
+    try {
+        const body: any = await parseRequestBody(req);
+        
+        if (!body.token) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ valid: false, error: 'Token required' }));
+            return;
+        }
+
+        const isValid = validateToken(body.token);
+        const tokenInfo: any = isValid ? (getTokenInfo as any)(body.token) : null;
+        
+        console.log(`[${new Date().toISOString()}] Token validation request: ${body.token.substring(0, 20)}... - Valid: ${isValid}`);
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+            valid: isValid,
+            expiresAt: tokenInfo?.expiresAt,
+            issuedAt: tokenInfo?.createdAt?.getTime?.(),
+        }));
+    } catch (err: any) {
+        console.error(`Validation error: ${err.message}`);
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ valid: false, error: err.message }));
+    }
+}
+
+// /**
+//  * Get token info
+//  */
+// function getTokenInfo(token: string): object | null {
+//     // This is now imported from token-store
+//     return null;
+// }
+
+/**
  * Handle GET /auth/health
  * Simple health check endpoint
  */
@@ -193,6 +237,8 @@ const server = http.createServer(async (req, res) => {
         await handleLogin(req, res);
     } else if (req.method === 'POST' && req.url === '/auth/logout') {
         await handleLogout(req, res);
+    } else if (req.method === 'POST' && req.url === '/auth/validate') {
+        await handleValidate(req, res);
     } else if (req.method === 'GET' && req.url === '/auth/health') {
         handleHealth(req, res);
     } else {
