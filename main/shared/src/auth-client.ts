@@ -114,6 +114,9 @@ class AuthClient {
             const requestBody = JSON.stringify({ token });
             
             const options = {
+                hostname: url.hostname,  // ADD THIS
+                port: url.port,          // ADD THIS
+                path: url.pathname,      // ADD THIS
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

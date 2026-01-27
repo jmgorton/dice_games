@@ -19,7 +19,23 @@ import { validateToken, updateTokenActivity } from './token-store.js';
 // Should be configured via environment variables or server setup
 let authClient: AuthClient | null = null;
 
-export function initializeAuthClient(config: { authServerUrl: string; cacheTTL?: number }) {
+// const loc = window.location;
+// const protocol = loc.protocol; // === "https:" ? "wss:" : "ws:"; 
+// const host = loc.host; // ensure the browser connects to the same port nginx is listening on 
+// const authURL = `${protocol}//${host}`; 
+
+try {
+    initializeAuthClient({
+        // authServerUrl: process.env.AUTH_SERVER_URL || 'http://localhost:1313',
+        authServerUrl: 'http://auth:6502', // Docker service name and port ... 
+        // cacheTTL: process.env.AUTH_CACHE_TTL ? parseInt(process.env.AUTH_CACHE_TTL) : undefined,
+        // validationTimeout: process.env.AUTH_VALIDATION_TIMEOUT ? parseInt(process.env.AUTH_VALIDATION_TIMEOUT) : undefined
+    });
+} catch (err) {
+    console.error('[Server] Failed to initialize auth client:', err);
+}
+
+export function initializeAuthClient(config: { authServerUrl: string; cacheTTL?: number; validationTimeout?: number }) {
     authClient = new AuthClient(config);
     console.log(`[Server] Auth client initialized with auth server: ${config.authServerUrl}`);
 }
@@ -265,28 +281,34 @@ const validator = (request: http.IncomingMessage, response: http.ServerResponse,
 }
 
 const authenticator = (request: http.IncomingMessage, response: http.ServerResponse, next: (err?: Error) => void) => {
-    // Extract token from authorization header or query parameter
-    // Header format: "Bearer <token>" or custom "x-auth-token"
-    let authHeader = request.headers.authorization || request.headers['x-auth-token'];
-    if (Array.isArray(authHeader)) {
-        if (authHeader.length > 1) return next(new Error('Too many auth tokens...??'));
-        else authHeader = authHeader[0];
-    }
-    console.log(`\n***** BEFORE *****`)
-    console.log(`Auth Header: ${authHeader}`);
-    console.log(`Request URL: ${request.url}`);
-    console.log(`Request.Headers.Host: ${request.headers.host}`)
-    console.log(`Search Params: ${new URL(request.url || '', `http://${request.headers.host}`).searchParams}`);
-    const token = authHeader?.replace('Bearer ', '') || 
-        new URL(request.url || '', `http://${request.headers.host}`).searchParams.get('token');
+    // Extract token from cookie, authorization header, or query parameter
+    // Priority: Cookie > Authorization Header > Query Parameter
 
-    console.log(`***** AFTER *****`)
-    console.log(`Auth Header: ${authHeader}`);
-    console.log(`Request URL: ${request.url}`);
-    console.log(`Request.Headers.Host: ${request.headers.host}`)
-    console.log(`Search Params: ${new URL(request.url || '', `http://${request.headers.host}`).searchParams}`);
-    console.log(`Received token: ${token}`);
-    console.log(``);
+    // 1. Try cookie first (most secure)
+    let token: string | null = null;
+    const cookies = request.headers.cookie;
+    if (cookies) {
+        const authCookie = cookies.split(';').find(c => c.trim().startsWith('authToken='));
+        if (authCookie) {
+            let authCookieSplit = authCookie.split('=');
+            if (authCookieSplit && authCookieSplit[1]) token = authCookieSplit[1].trim();
+        }
+    }
+
+    // 2. Fall back to Authorization Header format: "Bearer <token>" or custom "x-auth-token"
+    if (!token) {
+        let authHeader = request.headers.authorization || request.headers['x-auth-token'];
+        if (Array.isArray(authHeader)) {
+            if (authHeader.length > 1) return next(new Error('Too many auth tokens...??'));
+            else authHeader = authHeader[0];
+        }
+        token = authHeader?.replace('Bearer ', '') || null;
+    }
+
+    // 3. Fall back to query parameter (least secure) 
+    if (!token) {
+        token = new URL(request.url || '', `http://${request.headers.host}`).searchParams.get('token');
+    }
 
     // Validate token using distributed auth if available, otherwise fall back to local validation
     async function validateTokenAsync() {

@@ -228,7 +228,7 @@
             try {
                 await auth.login(password);
                 showMessage('Login successful! Redirecting...', 'success');
-                setTimeout(() => redirectToApp(), 1500);
+                setTimeout(() => redirectToApp(), 1000);
             } catch (err) {
                 submitBtn.disabled = false;
                 showMessage(err.message || 'Login failed', 'error');
@@ -255,7 +255,9 @@
                 showMessage('Error: No token found', 'error');
                 return;
             }
-            window.location.href = `http://localhost:1313/play?token=${encodeURIComponent(token)}`;
+            // window.location.href = `http://localhost:1313/play?token=${encodeURIComponent(token)}`;
+            // window.location.href = `${window.location.origin}/play?token=${encodeURIComponent(token)}`;
+            window.location.href = `${window.location.origin}`;
         }
     </script>
 </body>

@@ -65,8 +65,22 @@ async function handleLogin(req: http.IncomingMessage, res: http.ServerResponse) 
         const token = createToken();
         console.log(`[${new Date().toISOString()}] Successful login, issued token: ${token.substring(0, 20)}...`);
         
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ token }));
+        // Set HttpOnly cookie (more secure than localStorage)
+        const cookieOptions = [
+            `authToken=${token}`,
+            'HttpOnly',           // Prevents JavaScript access (XSS protection)
+            'Path=/',             // Available to all routes
+            'SameSite=Lax',       // CSRF protection
+            'Max-Age=86400',      // 24 hours (matches token TTL)
+            // 'Secure',          // Uncomment for HTTPS in production
+        ].join('; ');
+
+        res.writeHead(200, { 
+            'Content-Type': 'application/json',
+            'Set-Cookie': cookieOptions
+        });
+        // res.end(JSON.stringify({ token }));
+        res.end(JSON.stringify({ token, success: true }));
     } catch (err: any) {
         console.error(`Login error: ${err.message}`);
         res.writeHead(400, { 'Content-Type': 'application/json' });
@@ -92,7 +106,13 @@ async function handleLogout(req: http.IncomingMessage, res: http.ServerResponse)
         const revoked = revokeToken(body.token);
         console.log(`[${new Date().toISOString()}] Token revoked: ${body.token.substring(0, 20)}...`);
         
-        res.writeHead(200, { 'Content-Type': 'application/json' });
+        // Clear the cookie
+        const clearCookie = 'authToken=; HttpOnly; Path=/; Max-Age=0';
+
+        res.writeHead(200, { 
+            'Content-Type': 'application/json',
+            'Set-Cookie': clearCookie
+        });
         res.end(JSON.stringify({ success: revoked }));
     } catch (err: any) {
         console.error(`Logout error: ${err.message}`);
