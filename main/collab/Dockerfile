@@ -14,6 +14,8 @@ COPY ./ ./
 
 FROM staging AS ready
 
+EXPOSE 8080 8765
+
 # ENV PYTHONUNBUFFERED=1
 # -u: unbuffered (equivalent to ENV PYTHONUNBUFFERED=1)
 # making python unbuffered does fix the server log output issue 

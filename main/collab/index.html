@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dice Games Collab Space</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b0f14;
+        --panel: #121924;
+        --panel-2: #0f1520;
+        --text: #e6edf3;
+        --muted: #8b98a5;
+        --accent: #59a5ff;
+        --accent-2: #7cfa9b;
+        --border: #1f2a3a;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        background: radial-gradient(circle at top, #111b2b 0%, var(--bg) 50%);
+        color: var(--text);
+      }
+      header {
+        padding: 32px 24px 12px;
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+      header h1 {
+        margin: 0 0 6px;
+        font-size: 2rem;
+        letter-spacing: 0.02em;
+      }
+      header p { margin: 0; color: var(--muted); }
+      main {
+        max-width: 1100px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 18px;
+        padding: 18px 24px 40px;
+      }
+      .card {
+        background: linear-gradient(160deg, var(--panel) 0%, var(--panel-2) 100%);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 18px;
+        box-shadow: 0 15px 30px rgba(0,0,0,0.25);
+        min-height: 140px;
+      }
+      .card h2 {
+        margin: 0 0 8px;
+        font-size: 1.05rem;
+      }
+      .muted { color: var(--muted); font-size: 0.9rem; }
+      .row { display: flex; align-items: center; gap: 8px; }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        background: rgba(89, 165, 255, 0.15);
+        border: 1px solid rgba(89, 165, 255, 0.3);
+        color: var(--accent);
+      }
+      .status {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #ffb74d;
+        box-shadow: 0 0 10px rgba(255,183,77,0.6);
+      }
+      button {
+        appearance: none;
+        border: 1px solid rgba(124, 250, 155, 0.4);
+        background: rgba(124, 250, 155, 0.15);
+        color: var(--accent-2);
+        border-radius: 10px;
+        padding: 8px 12px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      ul { list-style: none; padding: 0; margin: 10px 0 0; }
+      li { padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+      .chat {
+        display: grid;
+        gap: 10px;
+      }
+      .input-row {
+        display: flex;
+        gap: 8px;
+      }
+      input {
+        flex: 1;
+        padding: 8px 10px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: #0b111c;
+        color: var(--text);
+      }
+      footer {
+        max-width: 1100px;
+        margin: 0 auto 28px;
+        padding: 0 24px;
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="row">
+        <span class="pill">Collab Prototype</span>
+      </div>
+      <h1>Dice Games Collab Space</h1>
+      <p>Lightweight playground for rooms, presence, and playful interactions. This is a placeholder UI that will grow.</p>
+    </header>
+    <main>
+      <section class="card">
+        <h2>Room Lobby</h2>
+        <p class="muted">Create or join a room to sync games, riffs, or rapid challenges.</p>
+        <div class="row">
+          <button type="button">Create Room</button>
+          <button type="button">Join Room</button>
+        </div>
+        <ul>
+          <li>Room: Cozy-fox • 3 players</li>
+          <li>Room: Roll-call • 1 player</li>
+          <li>Room: Lucky-lab • 5 players</li>
+        </ul>
+      </section>
+      <section class="card">
+        <h2>Presence</h2>
+        <p class="muted">Who is online and ready for a challenge?</p>
+        <div class="row" style="margin-top:10px;">
+          <span class="status"></span>
+          <span>Online now: 0</span>
+        </div>
+        <ul>
+          <li>👋 Waiting for live presence data...</li>
+        </ul>
+      </section>
+      <section class="card chat">
+        <h2>Quick Banter</h2>
+        <p class="muted">Short messages and reactions to seed the collaboration.</p>
+        <div class="input-row">
+          <input placeholder="Say hi or toss a playful idea..." />
+          <button type="button">Send</button>
+        </div>
+        <ul>
+          <li>🤖 Server: WebSocket ready for upgrades.</li>
+        </ul>
+      </section>
+      <section class="card">
+        <h2>Mini Tools</h2>
+        <p class="muted">Future widgets: timers, dice rollers, shared notes, and more.</p>
+        <div class="row" style="gap:6px; flex-wrap: wrap;">
+          <span class="pill">Dice</span>
+          <span class="pill">Timer</span>
+          <span class="pill">Sticky Notes</span>
+          <span class="pill">Mood Board</span>
+        </div>
+      </section>
+    </main>
+    <footer>
+      WebSocket endpoint is running on this server. This page will evolve into the live collab UI.
+    </footer>
+  </body>
+</html>

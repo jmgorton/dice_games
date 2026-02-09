@@ -30,6 +30,7 @@ services:
       - "1313:8080"
     volumes:
       - ./nginx/lb.conf:/etc/nginx/conf.d/lb.conf
+      - ./nginx/401.html:/etc/nginx/401.html
     depends_on:
       - app
       - auth

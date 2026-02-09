@@ -17,9 +17,14 @@ export const __dirname = path.dirname(__filename);
 const hostname = '0.0.0.0';
 const port = 6502;
 
-// Hardcoded password for now (family-only access)
-// TODO: Move to environment variable in production
-const EXPECTED_PASSWORD = 'family-password';
+// In-memory user credentials store: username -> password
+// In production, use proper bcrypt hashing and persistent storage
+const userCredentials = new Map<string, string>(
+    [['admin', 'family-password']] // Hardcoded admin credentials
+);
+
+const MIN_USERNAME_LENGTH = 3;
+const MIN_PASSWORD_LENGTH = 6;
 
 /**
  * Parse JSON body from request
@@ -43,27 +48,32 @@ function parseRequestBody(req: http.IncomingMessage) {
 
 /**
  * Handle POST /auth/login
- * Expects: { password: string }
- * Returns: { token: string } or error
+ * Expects: { username: string, password: string }
+ * Returns: { token: string, username: string } or error
  */
 async function handleLogin(req: http.IncomingMessage, res: http.ServerResponse) {
     try {
         const body: any = await parseRequestBody(req);
         
-        if (!body.password) {
+        if (!body.username || !body.password) {
             res.writeHead(400, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'Password required' }));
+            res.end(JSON.stringify({ error: 'Username and password required' }));
             return;
         }
 
-        if (body.password !== EXPECTED_PASSWORD) {
+        const username = body.username.trim();
+        const password = body.password;
+
+        // Check if user exists and password matches
+        const storedPassword = userCredentials.get(username);
+        if (!storedPassword || storedPassword !== password) {
             res.writeHead(401, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'Invalid password' }));
+            res.end(JSON.stringify({ error: 'Invalid username or password' }));
             return;
         }
 
         const token = createToken();
-        console.log(`[${new Date().toISOString()}] Successful login, issued token: ${token.substring(0, 20)}...`);
+        console.log(`[${new Date().toISOString()}] Successful login for user: ${username}, token: ${token.substring(0, 20)}...`);
         
         // Set HttpOnly cookie (more secure than localStorage)
         const cookieOptions = [
@@ -79,10 +89,75 @@ async function handleLogin(req: http.IncomingMessage, res: http.ServerResponse) 
             'Content-Type': 'application/json',
             'Set-Cookie': cookieOptions
         });
-        // res.end(JSON.stringify({ token }));
-        res.end(JSON.stringify({ token, success: true }));
+        res.end(JSON.stringify({ token, username, success: true }));
     } catch (err: any) {
         console.error(`Login error: ${err.message}`);
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: err.message }));
+    }
+}
+
+/**
+ * Handle POST /auth/register
+ * Expects: { username: string, password: string, passwordConfirm: string }
+ * Returns: { success: true, username: string } or error
+ */
+async function handleRegister(req: http.IncomingMessage, res: http.ServerResponse) {
+    try {
+        const body: any = await parseRequestBody(req);
+        
+        if (!body.username || !body.password || !body.passwordConfirm) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Username, password, and password confirmation required' }));
+            return;
+        }
+
+        const username = body.username.trim();
+        const password = body.password;
+        const passwordConfirm = body.passwordConfirm;
+
+        // Validate username
+        if (username.length < MIN_USERNAME_LENGTH) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: `Username must be at least ${MIN_USERNAME_LENGTH} characters` }));
+            return;
+        }
+
+        if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Username can only contain letters, numbers, underscores, and hyphens' }));
+            return;
+        }
+
+        // Validate password
+        if (password.length < MIN_PASSWORD_LENGTH) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters` }));
+            return;
+        }
+
+        // Verify passwords match
+        if (password !== passwordConfirm) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Passwords do not match' }));
+            return;
+        }
+
+        // Check if username already exists
+        if (userCredentials.has(username)) {
+            res.writeHead(409, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Username already exists' }));
+            return;
+        }
+
+        // Store new user
+        userCredentials.set(username, password);
+        console.log(`[${new Date().toISOString()}] New user registered: ${username}`);
+
+        res.writeHead(201, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, username, message: 'Account created successfully. You can now log in.' }));
+    } catch (err: any) {
+        console.error(`Registration error: ${err.message}`);
         res.writeHead(400, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: err.message }));
     }
@@ -125,26 +200,40 @@ async function handleLogout(req: http.IncomingMessage, res: http.ServerResponse)
  * Handle POST /auth/validate
  * Central validation endpoint for distributed architecture
  * Other services call this to verify tokens
+ * Nginx calls this via subrequest to validate tokens before proxying
  * 
- * Expects: { token: string }
+ * Accepts token from either:
+ * - JSON body: { token: string }
+ * - X-Auth-Token header (set by Nginx from authToken cookie)
+ * 
  * Returns: { valid: boolean, expiresAt?: number, issuedAt?: number }
  */
 async function handleValidate(req: http.IncomingMessage, res: http.ServerResponse) {
     try {
-        const body: any = await parseRequestBody(req);
-        
-        if (!body.token) {
-            res.writeHead(400, { 'Content-Type': 'application/json' });
+        // Try to get token from X-Auth-Token header first (set by Nginx subrequest)
+        let token = (req.headers['x-auth-token'] as string)?.trim();
+
+        // Fall back to JSON body if no header
+        if (!token) {
+            const body: any = await parseRequestBody(req);
+            token = body?.token;
+        }
+
+        if (!token) {
+            res.writeHead(401, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ valid: false, error: 'Token required' }));
             return;
         }
 
-        const isValid = validateToken(body.token);
-        const tokenInfo: any = isValid ? (getTokenInfo as any)(body.token) : null;
+        const isValid = validateToken(token);
+        const tokenInfo: any = isValid ? (getTokenInfo as any)(token) : null;
         
-        console.log(`[${new Date().toISOString()}] Token validation request: ${body.token.substring(0, 20)}... - Valid: ${isValid}`);
+        console.log(`[${new Date().toISOString()}] Token validation request: ${token.substring(0, 20)}... - Valid: ${isValid}`);
         
-        res.writeHead(200, { 'Content-Type': 'application/json' });
+        // Return 200 if valid (Nginx auth_request uses this to decide)
+        // Return 401 if invalid (Nginx will deny the request)
+        const statusCode = isValid ? 200 : 401;
+        res.writeHead(statusCode, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({
             valid: isValid,
             expiresAt: tokenInfo?.expiresAt,
@@ -255,6 +344,8 @@ const server = http.createServer(async (req, res) => {
         serveStaticFile(req, res);
     } else if (req.method === 'POST' && req.url === '/auth/login') {
         await handleLogin(req, res);
+    } else if (req.method === 'POST' && req.url === '/auth/register') {
+        await handleRegister(req, res);
     } else if (req.method === 'POST' && req.url === '/auth/logout') {
         await handleLogout(req, res);
     } else if (req.method === 'POST' && req.url === '/auth/validate') {

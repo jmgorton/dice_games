@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Authentication Required</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b0f14;
+        --panel: #121924;
+        --text: #e6edf3;
+        --muted: #8b98a5;
+        --accent: #59a5ff;
+        --accent-2: #7cfa9b;
+        --error: #ff6b6b;
+        --border: #1f2a3a;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "Inter", system-ui, -apple-system, sans-serif;
+        background: radial-gradient(circle at top, #111b2b 0%, var(--bg) 50%);
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 20px;
+      }
+      .container {
+        text-align: center;
+        max-width: 500px;
+      }
+      .icon {
+        font-size: 72px;
+        margin-bottom: 20px;
+      }
+      h1 {
+        margin: 0 0 8px;
+        font-size: 2.5rem;
+        letter-spacing: 0.02em;
+      }
+      .status-code {
+        display: inline-block;
+        background: rgba(255, 107, 107, 0.15);
+        border: 1px solid rgba(255, 107, 107, 0.3);
+        border-radius: 8px;
+        padding: 4px 12px;
+        color: var(--error);
+        font-size: 0.9rem;
+        margin-bottom: 20px;
+      }
+      p {
+        color: var(--muted);
+        margin: 0 0 24px;
+        line-height: 1.6;
+      }
+      .action {
+        display: inline-block;
+        margin-top: 12px;
+      }
+      a {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(89, 165, 255, 0.15);
+        border: 1px solid rgba(89, 165, 255, 0.4);
+        color: var(--accent);
+        padding: 12px 24px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s;
+      }
+      a:hover {
+        background: rgba(89, 165, 255, 0.25);
+        border-color: rgba(89, 165, 255, 0.6);
+        transform: translateY(-2px);
+      }
+      .arrow {
+        font-size: 1.1em;
+      }
+      footer {
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="icon">🔐</div>
+      <h1>Access Denied</h1>
+      <div class="status-code">401 Unauthorized</div>
+      <p>You need to be logged in to access this page. Please authenticate to continue.</p>
+      <div class="action">
+        <a href="/auth">
+          <span>Go to Login</span>
+          <span class="arrow">→</span>
+        </a>
+      </div>
+      <footer>
+        If you believe this is an error, please try logging in again or contact support.
+      </footer>
+    </div>
+  </body>
+</html>
