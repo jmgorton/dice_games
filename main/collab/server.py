@@ -10,6 +10,7 @@ import datetime
 import os
 
 import websockets
+from websockets.legacy.server import serve
 
 # Enqueue log records synchronously with QueueHandler,
 # any blocking I/O performed in separate thread via QueueListener
@@ -128,73 +129,37 @@ def load_html_file(filename: str) -> bytes:
         logger.error(f"Failed to load {filename}: {e}")
         return b"<html><body>Error loading page</body></html>"
 
-async def http_server_handler(reader, writer):
-    """Simple HTTP server for serving the collab homepage."""
-    try:
-        request_line = await reader.readline()
-        if not request_line:
-            writer.close()
-            return
+async def process_request(path, request_headers):
+    """Serve the collab HTML for normal HTTP requests on the WS port."""
+    if path in ("/", "/collab", "/collab/"):
+        body = load_html_file("index.html")
+        headers = [
+            ("Content-Type", "text/html; charset=utf-8"),
+            ("Content-Length", str(len(body))),
+            ("Cache-Control", "no-store"),
+            ("Connection", "close"),
+        ]
+        return 200, headers, body
 
-        request_line = request_line.decode().strip()
-        parts = request_line.split()
-        if len(parts) < 2:
-            writer.close()
-            return
-
-        method, path = parts[0], parts[1]
-
-        if method != "GET":
-            response = b"HTTP/1.1 405 Method Not Allowed\r\nContent-Type: text/plain\r\nContent-Length: 18\r\n\r\nMethod Not Allowed"
-            writer.write(response)
-            await writer.drain()
-            writer.close()
-            return
-
-        if path in ("/", "/collab", "/collab/"):
-            body = load_html_file("index.html")
-            response = (
-                f"HTTP/1.1 200 OK\r\n"
-                f"Content-Type: text/html; charset=utf-8\r\n"
-                f"Content-Length: {len(body)}\r\n"
-                f"Cache-Control: no-store\r\n"
-                f"Connection: close\r\n"
-                f"\r\n"
-            ).encode() + body
-            writer.write(response)
-            await writer.drain()
-        else:
-            body = b"Not Found"
-            response = (
-                f"HTTP/1.1 404 Not Found\r\n"
-                f"Content-Type: text/plain\r\n"
-                f"Content-Length: {len(body)}\r\n"
-                f"Connection: close\r\n"
-                f"\r\n"
-            ).encode() + body
-            writer.write(response)
-            await writer.drain()
-
-        writer.close()
-    except Exception as e:
-        logger.error(f"HTTP server error: {e}")
-        writer.close()
+    body = b"Not Found"
+    headers = [
+        ("Content-Type", "text/plain"),
+        ("Content-Length", str(len(body))),
+        ("Connection", "close"),
+    ]
+    return 404, headers, body
 
 # Define the main function to start the server
 async def main():
-    # Start the HTTP server on port 8080
-    http_server = await asyncio.start_server(http_server_handler, "0.0.0.0", 8080)
-    logger.info("HTTP server started at http://0.0.0.0:8080")
-
-    # Start the WebSocket server on port 8765
-    async with websockets.serve(
+    # Start a single server that handles HTTP and WebSocket on port 8765
+    async with serve(
         echo_handler,
         "0.0.0.0",
         8765,
+        process_request=process_request,
     ):
-        logger.info("WebSocket server started at ws://0.0.0.0:8765")
-        async with http_server:
-            await asyncio.Future()  # Keeps the servers running indefinitely
+        logger.info("Collab server started at http://0.0.0.0:8765 (HTTP + WS)")
+        await asyncio.Future()  # Keeps the server running indefinitely
 
 if __name__ == "__main__":
     # Run the main asynchronous function
