@@ -26,5 +26,6 @@ COPY --from=base /src/play/dist ./
 COPY --from=base /src/shared/dist ../shared/dist
 COPY --from=base /src/shared/node_modules ../shared/node_modules
 COPY play/index.html ./
+COPY play/lotto ./lotto
 
 CMD ["node", "server.js"]

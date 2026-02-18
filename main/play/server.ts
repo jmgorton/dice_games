@@ -45,6 +45,10 @@ const routeHandler = new URITree({
     //     "GET": serveStaticFile, // will serve index by default 
     // },
     childRoutes: {
+        'lotto': new URITree({
+            route: '/play/lotto',
+            serverRootDir: path.join(__dirname, 'lotto'),
+        }),
         'hostname': new URITree({
             route: '/play/hostname',
             handlerMap: {
