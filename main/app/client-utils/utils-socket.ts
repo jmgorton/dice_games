@@ -64,11 +64,7 @@ export function getSocketWithListenersByURL(
 // export function getSocketWithListenersByURL(url: string): WebSocket | undefined {
     if (!url) return undefined;
 
-    // Add authentication token to WebSocket URL
-    const token = localStorage.getItem('diceGamesAuthToken');
-    const urlWithAuth = token ? `${url}?token=${encodeURIComponent(token)}` : url;
-
-    const socket = new WebSocket(urlWithAuth);
+    const socket = new WebSocket(url);
     // options?: WebSocket.ClientOptions | ClientRequestArgs
     // interface ClientOptions extends SecureContextOptions {
     //     protocol?: string | undefined;

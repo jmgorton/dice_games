@@ -10,7 +10,12 @@ import datetime
 import os
 
 import websockets
-from websockets.legacy.server import serve
+from websockets.asyncio.server import serve
+from websockets.datastructures import Headers
+try:
+    from websockets.http import Response
+except ImportError:  # websockets 14+ moved Response
+    from websockets.http11 import Response
 
 # Enqueue log records synchronously with QueueHandler,
 # any blocking I/O performed in separate thread via QueueListener
@@ -98,7 +103,8 @@ def parseMessage(message):
 async def echo_handler(websocket):
     """WebSocket handler for each client connection."""
     # don't use sync print, blocking i/o handled by worker thread
-    logger.info(f"Client connected from path: {websocket.path}")
+    request_path = getattr(websocket.request, "path", "unknown")
+    logger.info(f"Client connected from path: {request_path}")
     try:
         # Loop indefinitely to receive messages from the client
         async for message in websocket:
@@ -129,30 +135,32 @@ def load_html_file(filename: str) -> bytes:
         logger.error(f"Failed to load {filename}: {e}")
         return b"<html><body>Error loading page</body></html>"
 
-async def process_request(path, request_headers):
+async def process_request(connection, request):
     """Serve the collab HTML for normal HTTP requests on the WS port."""
+    path = getattr(request, "path", "")
+    headers = getattr(request, "headers", {})
     normalized_path = path.split("?", 1)[0] if path else ""
-    upgrade = (request_headers.get("Upgrade") or "").lower()
+    upgrade = (headers.get("Upgrade") or "").lower()
     if upgrade == "websocket" and normalized_path in ("/collab", "/collab/"):
         return None
 
     if normalized_path in ("/", "/collab", "/collab/"):
         body = load_html_file("index.html")
-        headers = [
+        headers = Headers([
             ("Content-Type", "text/html; charset=utf-8"),
             ("Content-Length", str(len(body))),
             ("Cache-Control", "no-store"),
             ("Connection", "close"),
-        ]
-        return 200, headers, body
+        ])
+        return Response(200, "OK", headers, body)
 
     body = b"Not Found"
-    headers = [
+    headers = Headers([
         ("Content-Type", "text/plain"),
         ("Content-Length", str(len(body))),
         ("Connection", "close"),
-    ]
-    return 404, headers, body
+    ])
+    return Response(404, "Not Found", headers, body)
 
 # Define the main function to start the server
 async def main():
