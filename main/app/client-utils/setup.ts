@@ -18,6 +18,8 @@ const loc = window.location;
 const protocol = loc.protocol; // === "https:" ? "wss:" : "ws:"; 
 const host = loc.host; // ensure the browser connects to the same port nginx is listening on 
 const URL = `${protocol}//${host}`; 
+const wsProtocol = protocol === "https:" ? "wss:" : "ws:";
+const wsUrl = `${wsProtocol}//${host}`;
 
 /**
  * Helper to add auth token to fetch requests
@@ -48,33 +50,93 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 });
 
-let intervalId: number | undefined;
 const uptimeEl = document.getElementById("uptime");
 
-const updateUptime = async () => {
+const formatDuration = (value: number): string => {
+    if (typeof value !== 'number' || Number.isNaN(value)) return 'Unknown';
+    const totalSeconds = Math.max(0, Math.floor(value));
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    let formatted = '';
+    if (hours > 0) formatted += `${hours}h `;
+    if (minutes > 0 || hours > 0) formatted += `${minutes}m `;
+    formatted += `${seconds}s`;
+    return formatted.trim();
+}
+
+let uptimeSocket: WebSocket | undefined;
+let uptimePingInterval: number | undefined;
+let uptimeReconnectTimeout: number | undefined;
+
+const updateUptimeFromPayload = (payload: any) => {
+    if (!payload || payload.type !== 'PONG') return;
     if (!uptimeEl) return;
-    // TODO use window.loc or something
-    const uptimeResponse = await fetch(`${URL}/uptime`, {
-        headers: getAuthHeaders()
+    uptimeEl.innerText = formatDuration(payload.uptime);
+}
+
+const sendUptimePing = () => {
+    if (!uptimeSocket || uptimeSocket.readyState !== WebSocket.OPEN) return;
+    uptimeSocket.send(JSON.stringify({ type: 'PING', sentAt: Date.now() }));
+}
+
+const connectUptimeSocket = () => {
+    if (uptimeSocket && (uptimeSocket.readyState === WebSocket.OPEN || uptimeSocket.readyState === WebSocket.CONNECTING)) {
+        return;
+    }
+    uptimeSocket = new WebSocket(wsUrl);
+
+    uptimeSocket.addEventListener('open', () => {
+        sendUptimePing();
+        if (uptimePingInterval) window.clearInterval(uptimePingInterval);
+        uptimePingInterval = window.setInterval(sendUptimePing, 1000);
     });
-    if (uptimeResponse.status == 200) uptimeEl.innerText = await uptimeResponse.text();
+
+    uptimeSocket.addEventListener('message', (event) => {
+        if (typeof event.data !== 'string') return;
+        let payload;
+        try {
+            payload = JSON.parse(event.data);
+        } catch (err) {
+            return;
+        }
+        updateUptimeFromPayload(payload);
+    });
+
+    uptimeSocket.addEventListener('close', () => {
+        if (uptimePingInterval) window.clearInterval(uptimePingInterval);
+        uptimePingInterval = undefined;
+        if (!uptimeReconnectTimeout) {
+            uptimeReconnectTimeout = window.setTimeout(() => {
+                uptimeReconnectTimeout = undefined;
+                connectUptimeSocket();
+            }, 2000);
+        }
+    });
+
+    uptimeSocket.addEventListener('error', () => {
+        if (uptimeSocket) uptimeSocket.close();
+    });
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-    await updateUptime();
-    if (intervalId) window.clearInterval(intervalId);
-    intervalId = window.setInterval(updateUptime, 1000);
+    connectUptimeSocket();
 })
 
 document.addEventListener('visibilitychange', () => {
     // let intervalId: number | undefined;
     // only two options are visible/hidden
     if (document.visibilityState === 'visible') {
-        // const uptimeEl = document.getElementById("uptime");
-        if (!intervalId) intervalId = window.setInterval(updateUptime, 1000);
+        if (!uptimePingInterval && uptimeSocket?.readyState === WebSocket.OPEN) {
+            uptimePingInterval = window.setInterval(sendUptimePing, 1000);
+        }
+        if (!uptimeSocket || uptimeSocket.readyState === WebSocket.CLOSED) {
+            connectUptimeSocket();
+        }
     }
     else if (document.visibilityState === 'hidden') {
-        if (intervalId) clearInterval(intervalId);
+        if (uptimePingInterval) clearInterval(uptimePingInterval);
+        uptimePingInterval = undefined;
     }
 })
 

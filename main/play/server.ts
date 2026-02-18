@@ -47,7 +47,7 @@ const routeHandler = new URITree({
     childRoutes: {
         'lotto': new URITree({
             route: '/play/lotto',
-            serverRootDir: path.join(__dirname, 'lotto'),
+            // serverRootDir: path.join(__dirname, 'lotto'),
         }),
         'hostname': new URITree({
             route: '/play/hostname',
@@ -142,10 +142,14 @@ function getIpFromRequest(request: http.IncomingMessage): string | undefined {
     return ip;
 }
 
+function getUptimeSeconds(): number {
+    return process.uptime();
+}
+
 
 
 // type MessageTypeFromClient = "OPEN" | "MESSAGE" | "ECHO";
-const validInputMessageTypes = ["OPEN", "MESSAGE", "ECHO"];
+const validInputMessageTypes = ["OPEN", "MESSAGE", "ECHO", "PING"];
 type MessageTypeFromClient = typeof validInputMessageTypes[number];
 
 interface MessageIn {
@@ -347,6 +351,15 @@ function wssOnConnection(this: WebSocketServer, ws: WebSocket, request: http.Inc
                 }
                 broadcastExcludeSelf(JSON.stringify(msgOut));
                 ws.send(JSON.stringify({ ...msgOut, id: messageIn.id }))
+                break;
+            case "PING":
+                const sentAt = typeof messageIn.sentAt === 'number' ? messageIn.sentAt : Date.now();
+                ws.send(JSON.stringify({
+                    type: "PONG",
+                    sentAt,
+                    serverTime: Date.now(),
+                    uptime: getUptimeSeconds(),
+                }));
                 break;
             case "ECHO":
                 // console.log(`Failed to determine message type for input message: ${data}`)

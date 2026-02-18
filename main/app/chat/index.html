@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Dice Games</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="/app.css">
+    <script type="module" src="/setup.js"></script>
+  </head>
+  <body>
+    <div id="nav" >
+      <div id="toggle-nav" class="visible"> 🤔💭 </div>
+      <hr>
+      <div id="nav-buttons" >
+        <a class="dynamic-link" href="/auth"> &#128274; /auth</a>
+        <a class="dynamic-link" href="/play"> &#127922; /play</a>
+        <a class="dynamic-link" href="/collab"> &#129309; /collab</a>
+      </div>
+    </div>
+    <div id="content">
+      <h1>Dice Games</h1>
+      <p >Container: <span id="hostname">unknown host</span></p>
+      <p >Uptime: <span id="uptime">unknown</span></p>
+      <div id="wrapper">
+        <div id="chat">
+          <div id="chatbox"></div>
+          <div id="chat-inputs">
+            <input type="text" id="chat-input-text" maxlength="512" placeholder="You have to connect first..." disabled>
+            <div id="chat-input-send-options"><input type="button" class="chat-input-send" value="Send" disabled></div>
+          </div>
+        </div>
+
+        <div id="connection-info">
+          <div id="userlistbox"></div>
+          <div id="connection-input">
+            <input id="connection-input-text" type="text">
+            <div id="connection-input-options"><input id="connection-input-send" type="button"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,13 +1,14 @@
 import http from 'http';
-import os from 'os';
+// import os from 'os';
 import fs from 'fs';
+import WebSocket, { WebSocketServer } from 'ws';
 
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 // import { URITree } from '@shared/types.js'
 import { URITree } from '../shared/dist/types.js'
-import { setupHttpServerEventHandlers } from '../shared/dist/server-setup.js';
+import { setupHttpServerEventHandlers, setupWebSocketEventHandlers } from '../shared/dist/server-setup.js';
 import {
     getHostname,
     getUptime,
@@ -36,6 +37,10 @@ const routeHandler = new URITree({
     // },
     default404Response: getNotFound,
     childRoutes: {
+        'chat': new URITree({
+            route: '/chat',
+            serverRootDir: path.join(__dirname, 'chat'),
+        }),
         'hostname': new URITree({
             route: '/hostname',
             handlerMap: {
@@ -72,6 +77,71 @@ const server = setupHttpServerEventHandlers(http.createServer(), routeHandler);
 server.listen(port, hostname, () => {
     console.log(`Server running at http://${hostname}:${port}/ :)`);
 });
+
+const wss: WebSocketServer = new WebSocketServer({ server: server }, () => {
+    console.log(`WS server bound and listening on http://${hostname}:${port}/ :)`);
+});
+
+setupWebSocketEventHandlers(wss, {
+    'connection': wssOnConnection,
+});
+
+const validInputMessageTypes = ["PING", "ECHO"];
+type MessageTypeFromClient = typeof validInputMessageTypes[number];
+
+interface MessageIn {
+    [key: string]: any;
+    type: MessageTypeFromClient;
+}
+
+function getContainerUptimeSeconds(): number {
+    try {
+        return process.uptime();
+    } catch (error) {
+        console.error("Error fetching process uptime:", error);
+        try {
+            console.error("Error reading /proc files:", error);
+            const statData = fs.readFileSync('/proc/1/stat', 'utf8');
+            const statFields = statData.split(' ');
+            const startTimeJiffies = parseInt(statFields[21] ?? "0", 10);
+            const uptimeData = fs.readFileSync('/proc/uptime', 'utf8');
+            const uptimeFields = uptimeData.split(' ');
+            const containerSystemUptimeSeconds = parseFloat(uptimeFields[0] ?? "0");
+            const HZ = 100;
+            const containerUptimeSeconds = containerSystemUptimeSeconds - (startTimeJiffies / HZ);
+            return Math.max(0, containerUptimeSeconds);
+        } catch (error) {
+            console.error("Error reading /proc files for uptime:", error);
+            return -1; // Indicate an error in fetching uptime
+        }
+        // return process.uptime();
+    }
+}
+
+function wssOnConnection(this: WebSocketServer, ws: WebSocket) {
+    ws.on('message', (event: WebSocket.RawData) => {
+        const data = event?.toString() ?? '';
+        let messageIn: MessageIn = { type: 'ECHO', content: data };
+        try {
+            const parsed = JSON.parse(data);
+            if (parsed?.type && validInputMessageTypes.includes(parsed.type)) {
+                messageIn = parsed;
+            }
+        } catch {
+            if (data === 'PING') messageIn = { type: 'PING' };
+        }
+
+        if (messageIn.type === 'PING') {
+            const sentAt = typeof messageIn.sentAt === 'number' ? messageIn.sentAt : Date.now();
+            ws.send(JSON.stringify({
+                type: 'PONG',
+                sentAt,
+                serverTime: Date.now(),
+                uptime: getContainerUptimeSeconds(),
+            }));
+        }
+    });
+}
 
 export function getRoot(req: http.IncomingMessage, res: http.ServerResponse) {
     // console.log(`Getting root for req: ${req.method} ${req.url}`);

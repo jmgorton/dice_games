@@ -1,49 +1,442 @@
 <!DOCTYPE html>
-
-<html>
+<html lang="en">
   <head>
     <title>Dice Games</title>
     <meta charset="utf-8" />
-    <link rel="stylesheet" href="app.css">
-    <!-- moving from CommonJS to ES modules -->
-    <!-- type="text/javascript" for CommonJS, type="module" for ES modules -->
-     <script type="module" src="setup.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=IBM+Plex+Sans:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0f1116;
+        --surface: #151924;
+        --surface-strong: #1c2231;
+        --text: #f1f4f8;
+        --muted: #a1a9b8;
+        --accent: #77b7ff;
+        --outline: rgba(241, 244, 248, 0.08);
+        --glow: 0 18px 40px rgba(11, 14, 22, 0.6);
+        --radius: 18px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at 15% 20%, rgba(119, 183, 255, 0.18), transparent 45%),
+          radial-gradient(circle at 80% 10%, rgba(122, 84, 255, 0.2), transparent 40%),
+          linear-gradient(160deg, #0d0f14 0%, #111827 45%, #0c0f16 100%);
+      }
+
+      .page {
+        max-width: 1040px;
+        margin: 0 auto;
+        padding: 56px 22px 80px;
+        display: grid;
+        gap: 32px;
+      }
+
+      header {
+        display: grid;
+        gap: 12px;
+      }
+
+      .eyebrow {
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      h1 {
+        margin: 0;
+        font-family: "DM Serif Display", "Times New Roman", serif;
+        font-size: clamp(34px, 4vw, 52px);
+        line-height: 1.1;
+      }
+
+      .lead {
+        margin: 0;
+        max-width: 600px;
+        color: var(--muted);
+        font-size: 18px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+      }
+
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--outline);
+        border-radius: var(--radius);
+        padding: 20px;
+        display: grid;
+        gap: 12px;
+        box-shadow: var(--glow);
+      }
+
+      .card h2 {
+        margin: 0;
+        font-size: 18px;
+      }
+
+      .card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .cta {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 16px;
+        border-radius: 999px;
+        font-weight: 600;
+        font-size: 14px;
+        text-decoration: none;
+        color: #071020;
+        background: var(--accent);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        box-shadow: 0 12px 24px rgba(119, 183, 255, 0.35);
+      }
+
+      .cta:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 28px rgba(119, 183, 255, 0.45);
+      }
+
+      .meta {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 12px;
+      }
+
+      .meta-card {
+        background: var(--surface-strong);
+        border: 1px solid var(--outline);
+        border-radius: var(--radius);
+        padding: 16px 18px;
+        display: grid;
+        gap: 6px;
+      }
+
+      .meta-label {
+        text-transform: uppercase;
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        color: var(--muted);
+      }
+
+      .meta-value {
+        font-size: 15px;
+        font-weight: 500;
+      }
+
+      .divider {
+        height: 1px;
+        background: var(--outline);
+        margin: 12px 0 0;
+      }
+
+      footer {
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      @media (max-width: 720px) {
+        .page {
+          padding: 40px 18px 64px;
+        }
+      }
+    </style>
   </head>
   <body>
-    <!-- iframe: margin: 0; padding: 0; -->
-    <div id="nav" >
-      <div id="toggle-nav" class="visible"> 🤔💭 </div> <!-- 🗺️ ... U+1FAE3 (🫣) -->
-      <hr>
-      <div id="nav-buttons" >
-        <a class="dynamic-link" href="/auth"> &#128274; /auth</a> <!-- &#1F512; (🔒) Lock -->
-        <a class="dynamic-link" href="/play"> &#127922; /play</a> <!-- U+1F3B2; (🎲) Game Die -->
-        <a class="dynamic-link" href="/collab"> &#129309; /collab</a> <!-- U+1F91D; (🤝) Handshake -->
-      </div>
-    </div>
-    <!-- wrapper: justify-content: flex-start; flex-direction: row;  -->
-    <div id="content">
-      <h1>Dice Games</h1>
-      <p >Container: <span id="hostname">unknown host</span></p>
-      <p >Uptime: <span id="uptime">unknown</span></p>
-      <div id="wrapper">
-        <div id="chat">
-          <div id="chatbox"></div>
-          <div id="chat-inputs">
-            <!-- <div class="chat-input-row"> -->
-              <input type="text" id="chat-input-text" maxlength="512" placeholder="You have to connect first..." disabled>
-              <div id="chat-input-send-options"><input type="button" class="chat-input-send" value="Send" disabled></div>
-            <!-- </div> -->
-          </div>
-        </div>
+    <main class="page">
+      <header>
+        <div class="eyebrow">Dice Games</div>
+        <h1>Welcome back.</h1>
+        <p class="lead">
+          A calm, focused lobby for jumping into shared play, collaboration, and chat.
+        </p>
+      </header>
 
-        <div id="connection-info">
-          <div id="userlistbox"></div>
-          <div id="connection-input">
-            <input id="connection-input-text" type="text">
-            <div id="connection-input-options"><input id="connection-input-send" type="button"></div>
-          </div>
+      <section class="grid" aria-label="Navigation">
+        <article class="card">
+          <h2>Chat</h2>
+          <p>Join the live lobby and sync up with other players.</p>
+          <a class="cta" href="/chat">Open chat</a>
+        </article>
+        <article class="card">
+          <h2>Play</h2>
+          <p>Browse multiplayer games and join active tables.</p>
+          <a class="cta" href="/play">Go to play</a>
+        </article>
+        <article class="card">
+          <h2>Collab</h2>
+          <p>Pair up and build together in real time.</p>
+          <a class="cta" href="/collab">Enter collab</a>
+        </article>
+        <article class="card">
+          <h2>Auth</h2>
+          <p>Manage sessions, tokens, and authentication setup.</p>
+          <a class="cta" href="/auth">Visit auth</a>
+        </article>
+      </section>
+
+      <div class="divider"></div>
+
+      <section class="meta" aria-label="Container info">
+        <div class="meta-card">
+          <div class="meta-label">App container</div>
+          <div class="meta-value" id="hostname">Loading...</div>
         </div>
-      </div>
-    </div>
+        <div class="meta-card">
+          <div class="meta-label">App uptime</div>
+          <div class="meta-value" id="uptime">Loading...</div>
+        </div>
+        <div class="meta-card">
+          <div class="meta-label">Play</div>
+          <div class="meta-value" id="play-hostname">Connecting...</div>
+        </div>
+        <div class="meta-card">
+          <div class="meta-label">Play uptime</div>
+          <div class="meta-value" id="play-uptime">Waiting for pong...</div>
+        </div>
+        <div class="meta-card">
+          <div class="meta-label">Play RTT</div>
+          <div class="meta-value" id="play-rtt">Waiting for pong...</div>
+        </div>
+      </section>
+
+      <footer>
+        Choose a destination above to get started. New rooms show up as they go live.
+      </footer>
+    </main>
+    <script type="module">
+      const loc = window.location;
+      const protocol = loc.protocol;
+      const host = loc.host;
+      const baseUrl = `${protocol}//${host}`;
+      const wsProtocol = protocol === 'https:' ? 'wss:' : 'ws:';
+      const playWsUrl = `${wsProtocol}//${host}/play`;
+
+      const playHostnameEl = document.getElementById('play-hostname');
+      const playUptimeEl = document.getElementById('play-uptime');
+      const playRttEl = document.getElementById('play-rtt');
+
+      function getAuthHeaders() {
+        const token = localStorage.getItem('diceGamesAuthToken');
+        if (!token) return {};
+        return {
+          Authorization: `Bearer ${token}`
+        };
+      }
+
+      async function updateHostname() {
+        const hostnameEl = document.getElementById('hostname');
+        if (!hostnameEl) return;
+        const response = await fetch(`${baseUrl}/hostname`, {
+          headers: getAuthHeaders()
+        });
+        if (response.ok) {
+          hostnameEl.textContent = await response.text();
+        }
+      }
+
+      const uptimeEl = document.getElementById('uptime');
+      // let intervalId;
+
+      async function updatePlayHostname() {
+        if (!playHostnameEl) return;
+        const response = await fetch(`${baseUrl}/play/hostname`);
+        if (response.ok) {
+          playHostnameEl.textContent = await response.text();
+        }
+      }
+
+      // async function updateUptime() {
+      //   if (!uptimeEl) return;
+      //   const response = await fetch(`${baseUrl}/uptime`, {
+      //     headers: getAuthHeaders()
+      //   });
+      //   if (response.ok) {
+      //     uptimeEl.textContent = await response.text();
+      //   }
+      // }
+
+      function formatDuration(value) {
+        if (typeof value !== 'number' || Number.isNaN(value)) return 'Unknown';
+        const totalSeconds = Math.max(0, Math.floor(value));
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        let formatted = '';
+        if (hours > 0) formatted += `${hours}h `;
+        if (minutes > 0 || hours > 0) formatted += `${minutes}m `;
+        formatted += `${seconds}s`;
+        return formatted.trim();
+      }
+
+      let appSocket;
+      let appPingInterval;
+      let appReconnectTimeout;
+      let playSocket;
+      let playPingInterval;
+      let playReconnectTimeout;
+
+      function updateAppMetrics(payload) {
+        if (!payload || payload.type !== 'PONG') return;
+        if (uptimeEl) {
+          uptimeEl.textContent = formatDuration(payload.uptime);
+        }
+      }
+
+      function sendAppPing() {
+        if (!appSocket || appSocket.readyState !== WebSocket.OPEN) return;
+        appSocket.send(JSON.stringify({ type: 'PING', sentAt: Date.now() }));
+      }
+
+      function connectAppSocket() {
+        if (appSocket && (appSocket.readyState === WebSocket.OPEN || appSocket.readyState === WebSocket.CONNECTING)) {
+          return;
+        }
+        appSocket = new WebSocket(`${wsProtocol}//${host}`);
+
+        appSocket.addEventListener('open', () => {
+          sendAppPing();
+          if (appPingInterval) window.clearInterval(appPingInterval);
+          appPingInterval = window.setInterval(sendAppPing, 1000);
+        });
+
+        appSocket.addEventListener('message', (event) => {
+          if (typeof event.data !== 'string') return;
+          let payload;
+          try {
+            payload = JSON.parse(event.data);
+          } catch (err) {
+            return;
+          }
+          updateAppMetrics(payload);
+        });
+
+        appSocket.addEventListener('close', () => {
+          if (appPingInterval) window.clearInterval(appPingInterval);
+          appPingInterval = undefined;
+          if (!appReconnectTimeout) {
+            appReconnectTimeout = window.setTimeout(() => {
+              appReconnectTimeout = undefined;
+              connectAppSocket();
+            }, 2000);
+          }
+        });
+
+        appSocket.addEventListener('error', () => {
+          if (appSocket) appSocket.close();
+        });
+      }
+
+      function updatePlayMetrics(payload) {
+        if (!payload || payload.type !== 'PONG') return;
+        if (playUptimeEl) {
+          playUptimeEl.textContent = formatDuration(payload.uptime);
+        }
+        if (playRttEl && typeof payload.sentAt === 'number') {
+          const rtt = Math.max(0, Date.now() - payload.sentAt);
+          playRttEl.textContent = `${Math.round(rtt)}ms`;
+        }
+      }
+
+      function sendPlayPing() {
+        if (!playSocket || playSocket.readyState !== WebSocket.OPEN) return;
+        playSocket.send(JSON.stringify({ type: 'PING', sentAt: Date.now() }));
+      }
+
+      function connectPlaySocket() {
+        if (playSocket && (playSocket.readyState === WebSocket.OPEN || playSocket.readyState === WebSocket.CONNECTING)) {
+          return;
+        }
+        playSocket = new WebSocket(playWsUrl);
+
+        playSocket.addEventListener('open', () => {
+          sendPlayPing();
+          if (playPingInterval) window.clearInterval(playPingInterval);
+          playPingInterval = window.setInterval(sendPlayPing, 1000);
+        });
+
+        playSocket.addEventListener('message', (event) => {
+          if (typeof event.data !== 'string') return;
+          let payload;
+          try {
+            payload = JSON.parse(event.data);
+          } catch (err) {
+            return;
+          }
+          updatePlayMetrics(payload);
+        });
+
+        playSocket.addEventListener('close', () => {
+          if (playPingInterval) window.clearInterval(playPingInterval);
+          playPingInterval = undefined;
+          if (playHostnameEl) playHostnameEl.textContent = 'Disconnected';
+          if (!playReconnectTimeout) {
+            playReconnectTimeout = window.setTimeout(() => {
+              playReconnectTimeout = undefined;
+              connectPlaySocket();
+            }, 2000);
+          }
+        });
+
+        playSocket.addEventListener('error', () => {
+          if (playSocket) playSocket.close();
+        });
+      }
+
+      document.addEventListener('DOMContentLoaded', async () => {
+        await updateHostname();
+        // await updateUptime();
+        await updatePlayHostname();
+        // if (intervalId) window.clearInterval(intervalId);
+        // intervalId = window.setInterval(updateUptime, 1000);
+        connectAppSocket();
+        connectPlaySocket();
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          if (!appPingInterval && appSocket?.readyState === WebSocket.OPEN) {
+            appPingInterval = window.setInterval(sendAppPing, 1000);
+          }
+          if (!appSocket || appSocket.readyState === WebSocket.CLOSED) {
+            connectAppSocket();
+          }
+          if (!playPingInterval && playSocket?.readyState === WebSocket.OPEN) {
+            playPingInterval = window.setInterval(sendPlayPing, 1000);
+          }
+          if (!playSocket || playSocket.readyState === WebSocket.CLOSED) {
+            connectPlaySocket();
+          }
+        } else if (document.visibilityState === 'hidden') {
+          if (appPingInterval) window.clearInterval(appPingInterval);
+          appPingInterval = undefined;
+          if (playPingInterval) window.clearInterval(playPingInterval);
+          playPingInterval = undefined;
+        }
+      });
+    </script>
   </body>
 </html>

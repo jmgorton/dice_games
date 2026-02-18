@@ -11,10 +11,12 @@
     "build": "cd ../shared && npm run build && cd ../app && tsc"
   },
   "dependencies": {
-    "tsx": "^4.21.0"
+    "tsx": "^4.21.0",
+    "ws": "^8.19.0"
   },
   "devDependencies": {
     "@types/node": "^25.0.8",
+    "@types/ws": "^8.18.1",
     "ts-node": "^10.9.2",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
