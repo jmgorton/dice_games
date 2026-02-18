@@ -98,7 +98,7 @@ def parseMessage(message):
 async def echo_handler(websocket):
     """WebSocket handler for each client connection."""
     # don't use sync print, blocking i/o handled by worker thread
-    logger.info(f"Client connected from path: {websocket.request.path}")
+    logger.info(f"Client connected from path: {websocket.path}")
     try:
         # Loop indefinitely to receive messages from the client
         async for message in websocket:
@@ -131,7 +131,12 @@ def load_html_file(filename: str) -> bytes:
 
 async def process_request(path, request_headers):
     """Serve the collab HTML for normal HTTP requests on the WS port."""
-    if path in ("/", "/collab", "/collab/"):
+    normalized_path = path.split("?", 1)[0] if path else ""
+    upgrade = (request_headers.get("Upgrade") or "").lower()
+    if upgrade == "websocket" and normalized_path in ("/collab", "/collab/"):
+        return None
+
+    if normalized_path in ("/", "/collab", "/collab/"):
         body = load_html_file("index.html")
         headers = [
             ("Content-Type", "text/html; charset=utf-8"),
