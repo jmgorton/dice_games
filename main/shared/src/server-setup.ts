@@ -351,9 +351,15 @@ const authenticator = (request: http.IncomingMessage, response: http.ServerRespo
 
 const errorHandler = (err: Error, request: http.IncomingMessage, response: http.ServerResponse, next: (err?: Error) => void) => {
     console.error(`Caught error: ${err.name}: ${err.message}: ${err.cause}`);
-    // TODO if unauth error, redirect to /auth/login 
+    const message = err.message || 'Internal Server Error';
+    const isAuthError = message.startsWith('Unauthorized:') || message.startsWith('Authorization failed:');
+    if (isAuthError) {
+        response.writeHead(401, 'Unauthorized', { 'Content-Type': 'application/json' });
+        response.end(JSON.stringify({ error: message }));
+        return;
+    }
     response.writeHead(500, 'Internal Server Error', { 'Content-Type': 'application/json' });
-    response.end(JSON.stringify({ error: err.message || 'Internal Server Error' }));
+    response.end(JSON.stringify({ error: message }));
 }
 
 const middlewareStack = [logger, validator, authenticator];

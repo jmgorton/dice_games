@@ -37,6 +37,10 @@ function parseRequestBody(req: http.IncomingMessage) {
         });
         req.on('end', () => {
             try {
+                if (!body) {
+                    resolve({});
+                    return;
+                }
                 resolve(JSON.parse(body));
             } catch (err) {
                 reject(new Error('Invalid JSON'));

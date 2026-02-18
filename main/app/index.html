@@ -47,6 +47,37 @@
         gap: 32px;
       }
 
+      .page-actions {
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .icon-button {
+        border: 1px solid var(--outline);
+        background: var(--surface-strong);
+        color: var(--text);
+        border-radius: 999px;
+        width: 42px;
+        height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        box-shadow: var(--glow);
+      }
+
+      .icon-button:hover {
+        transform: translateY(-2px);
+        border-color: rgba(241, 244, 248, 0.2);
+      }
+
+      .icon-button svg {
+        width: 20px;
+        height: 20px;
+        fill: currentColor;
+      }
+
       header {
         display: grid;
         gap: 12px;
@@ -120,37 +151,23 @@
         box-shadow: 0 16px 28px rgba(119, 183, 255, 0.45);
       }
 
-      .meta {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 12px;
-      }
-
-      .meta-card {
-        background: var(--surface-strong);
-        border: 1px solid var(--outline);
-        border-radius: var(--radius);
-        padding: 16px 18px;
+      .status {
         display: grid;
         gap: 6px;
-      }
-
-      .meta-label {
-        text-transform: uppercase;
-        font-size: 11px;
-        letter-spacing: 0.16em;
+        font-size: 12px;
         color: var(--muted);
       }
 
-      .meta-value {
-        font-size: 15px;
-        font-weight: 500;
+      .status-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
       }
 
-      .divider {
-        height: 1px;
-        background: var(--outline);
-        margin: 12px 0 0;
+      .status-label {
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        font-size: 10px;
       }
 
       footer {
@@ -167,6 +184,15 @@
   </head>
   <body>
     <main class="page">
+      <div class="page-actions">
+        <button class="icon-button" id="logout-button" type="button" aria-label="Log out" title="Log out">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M10.5 3a1 1 0 0 1 1 1v2.1a1 1 0 1 1-2 0V5H6.5a1.5 1.5 0 0 0-1.5 1.5v11A1.5 1.5 0 0 0 6.5 19h3a1 1 0 0 1 0 2h-3A3.5 3.5 0 0 1 3 17.5v-11A3.5 3.5 0 0 1 6.5 3h4ZM14.3 7.3a1 1 0 0 1 1.4 0l3.5 3.5a1 1 0 0 1 0 1.4l-3.5 3.5a1 1 0 1 1-1.4-1.4l1.8-1.8H9.5a1 1 0 1 1 0-2h6.6l-1.8-1.8a1 1 0 0 1 0-1.4Z"
+            />
+          </svg>
+        </button>
+      </div>
       <header>
         <div class="eyebrow">Dice Games</div>
         <h1>Welcome back.</h1>
@@ -179,48 +205,60 @@
         <article class="card">
           <h2>Chat</h2>
           <p>Join the live lobby and sync up with other players.</p>
+          <div class="status">
+            <div class="status-row">
+              <span class="status-label">Container</span>
+              <span id="hostname">Loading...</span>
+            </div>
+            <div class="status-row">
+              <span class="status-label">Uptime</span>
+              <span id="uptime">Loading...</span>
+            </div>
+            <div class="status-row">
+              <span class="status-label">RTT</span>
+              <span id="app-rtt">Unknown</span>
+            </div>
+          </div>
           <a class="cta" href="/chat">Open chat</a>
         </article>
         <article class="card">
           <h2>Play</h2>
           <p>Browse multiplayer games and join active tables.</p>
+          <div class="status">
+            <div class="status-row">
+              <span class="status-label">Container</span>
+              <span id="play-hostname">Connecting...</span>
+            </div>
+            <div class="status-row">
+              <span class="status-label">Uptime</span>
+              <span id="play-uptime">Waiting for pong...</span>
+            </div>
+            <div class="status-row">
+              <span class="status-label">RTT</span>
+              <span id="play-rtt">Waiting for pong...</span>
+            </div>
+          </div>
           <a class="cta" href="/play">Go to play</a>
         </article>
         <article class="card">
           <h2>Collab</h2>
           <p>Pair up and build together in real time.</p>
+          <div class="status">
+            <div class="status-row">
+              <span class="status-label">Container</span>
+              <span>Unknown</span>
+            </div>
+            <div class="status-row">
+              <span class="status-label">Uptime</span>
+              <span>Unknown</span>
+            </div>
+            <div class="status-row">
+              <span class="status-label">RTT</span>
+              <span>Unknown</span>
+            </div>
+          </div>
           <a class="cta" href="/collab">Enter collab</a>
         </article>
-        <article class="card">
-          <h2>Auth</h2>
-          <p>Manage sessions, tokens, and authentication setup.</p>
-          <a class="cta" href="/auth">Visit auth</a>
-        </article>
-      </section>
-
-      <div class="divider"></div>
-
-      <section class="meta" aria-label="Container info">
-        <div class="meta-card">
-          <div class="meta-label">App container</div>
-          <div class="meta-value" id="hostname">Loading...</div>
-        </div>
-        <div class="meta-card">
-          <div class="meta-label">App uptime</div>
-          <div class="meta-value" id="uptime">Loading...</div>
-        </div>
-        <div class="meta-card">
-          <div class="meta-label">Play</div>
-          <div class="meta-value" id="play-hostname">Connecting...</div>
-        </div>
-        <div class="meta-card">
-          <div class="meta-label">Play uptime</div>
-          <div class="meta-value" id="play-uptime">Waiting for pong...</div>
-        </div>
-        <div class="meta-card">
-          <div class="meta-label">Play RTT</div>
-          <div class="meta-value" id="play-rtt">Waiting for pong...</div>
-        </div>
       </section>
 
       <footer>
@@ -238,6 +276,12 @@
       const playHostnameEl = document.getElementById('play-hostname');
       const playUptimeEl = document.getElementById('play-uptime');
       const playRttEl = document.getElementById('play-rtt');
+      const appRttEl = document.getElementById('app-rtt');
+      const logoutButton = document.getElementById('logout-button');
+
+      function goToLogin() {
+        window.location.href = `${baseUrl}/auth`;
+      }
 
       function getAuthHeaders() {
         const token = localStorage.getItem('diceGamesAuthToken');
@@ -245,6 +289,30 @@
         return {
           Authorization: `Bearer ${token}`
         };
+      }
+
+      async function logout() {
+        const token = localStorage.getItem('diceGamesAuthToken');
+        if (token) {
+          try {
+            await fetch(`${baseUrl}/auth/logout`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ token })
+            });
+          } catch (err) {
+            // Ignore network errors and continue cleanup
+          }
+        }
+        localStorage.removeItem('diceGamesAuthToken');
+        localStorage.removeItem('diceGamesUsername');
+        goToLogin();
+      }
+
+      if (logoutButton) {
+        logoutButton.addEventListener('click', () => {
+          logout();
+        });
       }
 
       async function updateHostname() {
@@ -303,6 +371,10 @@
         if (!payload || payload.type !== 'PONG') return;
         if (uptimeEl) {
           uptimeEl.textContent = formatDuration(payload.uptime);
+        }
+        if (appRttEl && typeof payload.sentAt === 'number') {
+          const rtt = Math.max(0, Date.now() - payload.sentAt);
+          appRttEl.textContent = `${Math.round(rtt)}ms`;
         }
       }
 
@@ -392,7 +464,9 @@
         playSocket.addEventListener('close', () => {
           if (playPingInterval) window.clearInterval(playPingInterval);
           playPingInterval = undefined;
-          if (playHostnameEl) playHostnameEl.textContent = 'Disconnected';
+          if (playHostnameEl && document.visibilityState === 'visible') {
+            playHostnameEl.textContent = 'Disconnected';
+          }
           if (!playReconnectTimeout) {
             playReconnectTimeout = window.setTimeout(() => {
               playReconnectTimeout = undefined;
@@ -414,6 +488,12 @@
         // intervalId = window.setInterval(updateUptime, 1000);
         connectAppSocket();
         connectPlaySocket();
+      });
+
+      window.addEventListener('pageshow', async (event) => {
+        if (event.persisted) {
+          await updatePlayHostname();
+        }
       });
 
       document.addEventListener('visibilitychange', () => {
