@@ -246,15 +246,15 @@
           <div class="status">
             <div class="status-row">
               <span class="status-label">Container</span>
-              <span>Unknown</span>
+              <span id="collab-hostname">Connecting...</span>
             </div>
             <div class="status-row">
               <span class="status-label">Uptime</span>
-              <span>Unknown</span>
+              <span id="collab-uptime">Waiting for pong...</span>
             </div>
             <div class="status-row">
               <span class="status-label">RTT</span>
-              <span>Unknown</span>
+              <span id="collab-rtt">Waiting for pong...</span>
             </div>
           </div>
           <a class="cta" href="/collab">Enter collab</a>
@@ -272,11 +272,15 @@
       const baseUrl = `${protocol}//${host}`;
       const wsProtocol = protocol === 'https:' ? 'wss:' : 'ws:';
       const playWsUrl = `${wsProtocol}//${host}/play`;
+      const collabWsUrl = `${wsProtocol}//${host}/collab`;
 
       const playHostnameEl = document.getElementById('play-hostname');
       const playUptimeEl = document.getElementById('play-uptime');
       const playRttEl = document.getElementById('play-rtt');
       const appRttEl = document.getElementById('app-rtt');
+      const collabHostnameEl = document.getElementById('collab-hostname');
+      const collabUptimeEl = document.getElementById('collab-uptime');
+      const collabRttEl = document.getElementById('collab-rtt');
       const logoutButton = document.getElementById('logout-button');
 
       function goToLogin() {
@@ -337,6 +341,14 @@
         }
       }
 
+      async function updateCollabHostname() {
+        if (!collabHostnameEl) return;
+        const response = await fetch(`${baseUrl}/collab/hostname`);
+        if (response.ok) {
+          collabHostnameEl.textContent = await response.text();
+        }
+      }
+
       // async function updateUptime() {
       //   if (!uptimeEl) return;
       //   const response = await fetch(`${baseUrl}/uptime`, {
@@ -366,6 +378,9 @@
       let playSocket;
       let playPingInterval;
       let playReconnectTimeout;
+      let collabSocket;
+      let collabPingInterval;
+      let collabReconnectTimeout;
 
       function updateAppMetrics(payload) {
         if (!payload || payload.type !== 'PONG') return;
@@ -433,6 +448,17 @@
         }
       }
 
+      function updateCollabMetrics(payload) {
+        if (!payload || payload.type !== 'PONG') return;
+        if (collabUptimeEl) {
+          collabUptimeEl.textContent = formatDuration(payload.uptime);
+        }
+        if (collabRttEl && typeof payload.sentAt === 'number') {
+          const rtt = Math.max(0, Date.now() - payload.sentAt);
+          collabRttEl.textContent = `${Math.round(rtt)}ms`;
+        }
+      }
+
       function sendPlayPing() {
         if (!playSocket || playSocket.readyState !== WebSocket.OPEN) return;
         playSocket.send(JSON.stringify({ type: 'PING', sentAt: Date.now() }));
@@ -480,19 +506,69 @@
         });
       }
 
+      function sendCollabPing() {
+        if (!collabSocket || collabSocket.readyState !== WebSocket.OPEN) return;
+        collabSocket.send(JSON.stringify({ type: 'PING', sentAt: Date.now() }));
+      }
+
+      function connectCollabSocket() {
+        if (collabSocket && (collabSocket.readyState === WebSocket.OPEN || collabSocket.readyState === WebSocket.CONNECTING)) {
+          return;
+        }
+        collabSocket = new WebSocket(collabWsUrl);
+
+        collabSocket.addEventListener('open', () => {
+          sendCollabPing();
+          if (collabPingInterval) window.clearInterval(collabPingInterval);
+          collabPingInterval = window.setInterval(sendCollabPing, 1000);
+        });
+
+        collabSocket.addEventListener('message', (event) => {
+          if (typeof event.data !== 'string') return;
+          let payload;
+          try {
+            payload = JSON.parse(event.data);
+          } catch (err) {
+            return;
+          }
+          updateCollabMetrics(payload);
+        });
+
+        collabSocket.addEventListener('close', () => {
+          if (collabPingInterval) window.clearInterval(collabPingInterval);
+          collabPingInterval = undefined;
+          if (collabHostnameEl && document.visibilityState === 'visible') {
+            collabHostnameEl.textContent = 'Disconnected';
+          }
+          if (!collabReconnectTimeout) {
+            collabReconnectTimeout = window.setTimeout(() => {
+              collabReconnectTimeout = undefined;
+              connectCollabSocket();
+            }, 2000);
+          }
+        });
+
+        collabSocket.addEventListener('error', () => {
+          if (collabSocket) collabSocket.close();
+        });
+      }
+
       document.addEventListener('DOMContentLoaded', async () => {
         await updateHostname();
         // await updateUptime();
         await updatePlayHostname();
+        await updateCollabHostname();
         // if (intervalId) window.clearInterval(intervalId);
         // intervalId = window.setInterval(updateUptime, 1000);
         connectAppSocket();
         connectPlaySocket();
+        connectCollabSocket();
       });
 
       window.addEventListener('pageshow', async (event) => {
         if (event.persisted) {
           await updatePlayHostname();
+          await updateCollabHostname();
         }
       });
 
@@ -510,11 +586,19 @@
           if (!playSocket || playSocket.readyState === WebSocket.CLOSED) {
             connectPlaySocket();
           }
+          if (!collabPingInterval && collabSocket?.readyState === WebSocket.OPEN) {
+            collabPingInterval = window.setInterval(sendCollabPing, 1000);
+          }
+          if (!collabSocket || collabSocket.readyState === WebSocket.CLOSED) {
+            connectCollabSocket();
+          }
         } else if (document.visibilityState === 'hidden') {
           if (appPingInterval) window.clearInterval(appPingInterval);
           appPingInterval = undefined;
           if (playPingInterval) window.clearInterval(playPingInterval);
           playPingInterval = undefined;
+          if (collabPingInterval) window.clearInterval(collabPingInterval);
+          collabPingInterval = undefined;
         }
       });
     </script>

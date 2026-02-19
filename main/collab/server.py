@@ -8,6 +8,8 @@ from uuid import uuid4
 import json
 import datetime
 import os
+import socket
+import time
 
 import websockets
 from websockets.asyncio.server import serve
@@ -30,6 +32,8 @@ logger.addHandler(QueueHandler(q))
 
 connections = defaultdict(None)
 # connections structure: key: clientId with {"name": username, "socket": websocket}
+
+server_start_time = time.monotonic()
 
 async def broadcast(message: str):
     sendTasks = [connection["socket"].send(message) for connection in connections.values()]
@@ -113,7 +117,18 @@ async def echo_handler(websocket):
             if not messageIn:
                 return
 
-            if (messageIn["type"] == "OPEN"):
+            if (messageIn["type"] == "PING"):
+                sent_at = messageIn.get("sentAt")
+                if not isinstance(sent_at, (int, float)):
+                    sent_at = int(time.time() * 1000)
+                uptime_seconds = max(0, time.monotonic() - server_start_time)
+                await websocket.send(json.dumps({
+                    "type": "PONG",
+                    "sentAt": sent_at,
+                    "serverTime": int(time.time() * 1000),
+                    "uptime": uptime_seconds,
+                }))
+            elif (messageIn["type"] == "OPEN"):
                 await handleOpen(messageIn, websocket)
             elif (messageIn["type"] == "MESSAGE"):
                 await handleMessage(messageIn, websocket)
@@ -143,6 +158,17 @@ async def process_request(connection, request):
     upgrade = (headers.get("Upgrade") or "").lower()
     if upgrade == "websocket" and normalized_path in ("/collab", "/collab/"):
         return None
+
+    if normalized_path in ("/collab/hostname", "/collab/hostname/"):
+        hostname = socket.gethostname()
+        body = hostname.encode("utf-8")
+        headers = Headers([
+            ("Content-Type", "text/plain; charset=utf-8"),
+            ("Content-Length", str(len(body))),
+            ("Cache-Control", "no-store"),
+            ("Connection", "close"),
+        ])
+        return Response(200, "OK", headers, body)
 
     if normalized_path in ("/", "/collab", "/collab/"):
         body = load_html_file("index.html")
