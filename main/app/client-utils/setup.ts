@@ -167,7 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!(connInputOptions instanceof HTMLDivElement)) return;
     // const optionPlay = document.getElementById('connection-input-send')?.cloneNode();
     // for (const target of ["play","collab"]) {
-    const targets: string[] = ["play","collab"];
+    const targets: string[] = ["app", "play", "collab"];
     for (let i = 0; i < targets.length; i++) {
         const target: string = targets[i] ?? '';
         const option = document.createElement("input");

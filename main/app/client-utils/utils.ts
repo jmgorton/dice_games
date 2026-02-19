@@ -41,12 +41,16 @@ function pyOnOpen (this: WebSocket, event: Event) {
     onOpen.call(this, event, "collab");
 }
 
+function appOnOpen (this: WebSocket, event: Event) {
+    onOpen.call(this, event, "app");
+}
+
 function jsOnOpen (this: WebSocket, event: Event) {
     onOpen.call(this, event, "play");
 }
 
 function onOpen (this: WebSocket, event: Event, target: string) {
-    if (!target || !["play", "collab"].includes(target)) {
+    if (!target || !["app", "play", "collab"].includes(target)) {
         console.log(`Not set up to handle target "${target}"...`);
         return;
     }
@@ -67,6 +71,11 @@ function onOpen (this: WebSocket, event: Event, target: string) {
 function pyOnMessage(this: WebSocket, event: MessageEvent<any>) { // : any 
     console.log('Message from PY server: ', event.data);
     onMessage.call(this, event, "collab");
+};
+
+function appOnMessage(this: WebSocket, evt: MessageEvent<any>) {
+    console.log(`Message from APP server: ${evt}`);
+    onMessage.call(this, evt, "app");
 };
 
 
@@ -167,6 +176,11 @@ const pyWsEventHandlers = { // type annotations TODO
     'message': pyOnMessage,
 }
 
+const appWsEventHandlers = { // type annotations TODO
+    'open': appOnOpen,
+    'message': appOnMessage,
+}
+
 const connections: {
     // [key: string]: WebSocket;
     [target: string]: { // clientId? or move to server target ("play","collab") ?? 
@@ -182,14 +196,17 @@ const connections: {
 const targetToClientId: {
     [target: string]: Set<string>; // string | 
 } = {
+    "app": new Set(),
     "play": new Set(),
     "collab": new Set(),
 }
 
 let targetUserLists: {
+    "app": string[];
     "play": string[];
     "collab": string[];
 } = {
+    "app": [],
     "play": [],
     "collab": [],
 }
@@ -213,6 +230,7 @@ let targetUserLists: {
 const targetToHandlersMap: {
     [target: string]: object;
 } = {
+    "app": appWsEventHandlers,
     "collab": pyWsEventHandlers,
     "play": jsWsEventHandlers,
 }

@@ -164,7 +164,7 @@ function wssOnConnection(this: WebSocketServer, ws: WebSocket, request: http.Inc
     const clientId = generateClientID();
     const ip = getIpFromRequest(request);
 
-    clients[clientId] = { socket: ws, username: clientId, ip }
+    // clients[clientId] = { socket: ws, username: clientId, ip }
 
     const broadcast = (msg: any) => {
         
@@ -330,14 +330,15 @@ function wssOnConnection(this: WebSocketServer, ws: WebSocket, request: http.Inc
         // let messageOut: any
         switch (messageIn.type) {
             case "OPEN":
-                if (clients && clientId in clients) clients[clientId]!.username = messageIn.username; 
+                const username = messageIn.username || clientId;
+                clients[clientId] = { socket: ws, username, ip };
                 // let messageOut: any = JSON.stringify({
                 //     type: "userlist",
                 //     users: makeUserListMessage(),
                 // });
                 let messageOut = JSON.stringify(makeUserListMessage());
                 // wss.clients.add(this);
-                ws.send(JSON.stringify({ type: "id", id: clientId, name: messageIn.username })); // target undefined ??? 
+                ws.send(JSON.stringify({ type: "id", id: clientId, name: username })); // target undefined ??? 
                 broadcast(messageOut);
                 break;
             case "MESSAGE":

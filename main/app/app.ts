@@ -86,7 +86,7 @@ setupWebSocketEventHandlers(wss, {
     'connection': wssOnConnection,
 });
 
-const validInputMessageTypes = ["PING", "ECHO"];
+const validInputMessageTypes = ["OPEN", "MESSAGE", "PING", "ECHO"];
 type MessageTypeFromClient = typeof validInputMessageTypes[number];
 
 interface MessageIn {
@@ -118,27 +118,159 @@ function getContainerUptimeSeconds(): number {
     }
 }
 
+const clients: {
+    [key: string]: {
+        [key: string]: any;
+        socket: WebSocket;
+        username: string;
+    };
+} = {};
+
+function makeUserListMessage() {
+    return {
+        type: "userlist",
+        users: Object.keys(clients).map(client => clients[client]?.username ?? client ?? 'unknown').join(';')
+    }
+}
+
+function generateClientID() {
+    return Math.random().toString(36).substring(6, 15);
+}
+
 function wssOnConnection(this: WebSocketServer, ws: WebSocket) {
-    ws.on('message', (event: WebSocket.RawData) => {
-        const data = event?.toString() ?? '';
-        let messageIn: MessageIn = { type: 'ECHO', content: data };
-        try {
-            const parsed = JSON.parse(data);
-            if (parsed?.type && validInputMessageTypes.includes(parsed.type)) {
-                messageIn = parsed;
+    const wss = this;
+    const clientId = generateClientID();
+
+    // clients[clientId] = { socket: ws, username: clientId };
+
+    const broadcast = (msg: any) => {
+        wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(msg);
             }
-        } catch {
-            if (data === 'PING') messageIn = { type: 'PING' };
+        });
+    };
+
+    const broadcastExcludeSelf = (msg: any) => {
+        wss.clients.forEach((client) => {
+            if (client !== ws && client.readyState === WebSocket.OPEN) {
+                client.send(msg);
+            }
+        });
+    };
+
+    const stringMessageParser = (event: WebSocket.MessageEvent): MessageIn | undefined => {
+        const data = event;
+        let message: MessageIn = {
+            type: 'ECHO'
+        };
+        try {
+            const dataEls = data.toString().split('::');
+            if (!dataEls || dataEls.length !== 2 || !dataEls[0]) return undefined;
+            if (validInputMessageTypes.includes(dataEls[0])) {
+                message.type = dataEls[0];
+                switch (message.type) {
+                    case "MESSAGE":
+                        message.text = dataEls[1];
+                        break;
+                    case "OPEN":
+                        message.username = dataEls[1];
+                        break;
+                    default:
+                        message.content = dataEls[1];
+                }
+            } else {
+                message.content = data;
+            }
+            return message;
+        } catch (err: any) {
+            return undefined;
+        }
+    };
+
+    const jsonMessageParser = function (this: WebSocket, data: WebSocket.RawData, isBinary: boolean): MessageIn | undefined {
+        let message: WebSocket.RawData = data;
+        let messageInfo: MessageIn = {
+            id: undefined,
+            type: 'ECHO',
+            name: undefined,
+            text: undefined,
+        };
+
+        try {
+            message = JSON.parse(data.toString());
+            Object.assign(messageInfo, message);
+            return messageInfo;
+        } catch (err: any) {
+            if (err instanceof SyntaxError) {
+                // Ignore parse errors
+            }
+            return undefined;
+        }
+    };
+
+    const parseMessageFromEvent = (event: WebSocket.MessageEvent): MessageIn => {
+        const data = event;
+        if (!data) return { type: "ECHO", content: data };
+
+        const isBinary = false;
+        let messageIn = stringMessageParser(event);
+        let dataBuffer = undefined;
+        if (Buffer.isBuffer(data)) dataBuffer = data;
+        else if (Array.isArray(data)) dataBuffer = Buffer.from(data.join());
+        else if (typeof data === 'string') dataBuffer = Buffer.from(data);
+        if (!dataBuffer) {
+            return {
+                type: "ECHO",
+                content: data,
+            };
         }
 
-        if (messageIn.type === 'PING') {
-            const sentAt = typeof messageIn.sentAt === 'number' ? messageIn.sentAt : Date.now();
-            ws.send(JSON.stringify({
-                type: 'PONG',
-                sentAt,
-                serverTime: Date.now(),
-                uptime: getContainerUptimeSeconds(),
-            }));
+        if (!messageIn) messageIn = jsonMessageParser.call(event.target, dataBuffer, isBinary);
+        if (!messageIn) {
+            return {
+                type: "ECHO",
+                content: data,
+            };
+        }
+        return messageIn;
+    };
+
+    ws.on('message', (event: WebSocket.MessageEvent) => {
+        const messageIn: MessageIn = parseMessageFromEvent(event);
+
+        switch (messageIn.type) {
+            case "OPEN":
+                const username = messageIn.username || clientId;
+                clients[clientId] = { socket: ws, username };
+                ws.send(JSON.stringify({ type: "id", id: clientId, name: username }));
+                broadcast(JSON.stringify(makeUserListMessage()));
+                break;
+            case "MESSAGE":
+                const sender = clients[messageIn.id];
+                const msgOut = {
+                    type: 'message',
+                    text: messageIn.text,
+                    name: sender?.username ?? 'unknown',
+                    date: messageIn.date ?? Date.now(),
+                };
+                broadcastExcludeSelf(JSON.stringify(msgOut));
+                ws.send(JSON.stringify({ ...msgOut, id: messageIn.id }));
+                break;
+            case "PING":
+                const sentAt = typeof messageIn.sentAt === 'number' ? messageIn.sentAt : Date.now();
+                ws.send(JSON.stringify({
+                    type: "PONG",
+                    sentAt,
+                    serverTime: Date.now(),
+                    uptime: getContainerUptimeSeconds(),
+                }));
+                break;
+            case "ECHO":
+                ws.send(`ECHO: ${messageIn?.content ?? event}`);
+                break;
+            default:
+                break;
         }
     });
 }

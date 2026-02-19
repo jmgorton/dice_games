@@ -89,22 +89,21 @@ body {
                         background-color: gold;
                         color: black;
                         max-width: fit-content;
-                        margin: 10px auto;
+                        margin: 10px 8px;
                         padding: 4px;
+                        align-self: flex-start;
                     }
     
                     div.sender-self {
                         background-color: blue;
                         color: white;
-                        /* align-self: flex-end; */
-                        margin-left: auto;
+                        align-self: flex-end;
                     }
     
                     div.sender-other {
                         background-color: bisque;
                         color: black;
-                        /* align-self: flex-start; */
-                        margin-right: auto;
+                        align-self: flex-start;
                     }
                 }
         
