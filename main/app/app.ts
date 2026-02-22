@@ -11,7 +11,7 @@ import { URITree } from '../shared/dist/types.js'
 import { setupHttpServerEventHandlers, setupWebSocketEventHandlers } from '../shared/dist/server-setup.js';
 import {
     getHostname,
-    getUptime,
+    // getUptime,
     getNotFound,
 } from './server-utils/responses.js'
 
@@ -27,7 +27,7 @@ const port = 3000;
 
 const availableAssetsRegex = /^\/((?:app\.css|(?:setup|utils(?:-(?:ui|socket))?)\.(?:.*)[jt]s(?:\.map)?))$/;
 const settingsAssetsRegex = /^\/settings\/((?:settings\.js(?:\.map)?))$/;
-const sharedCssAssetsRegex = /^\/shared\/(([A-Za-z0-9_\/-]+\.css))$/;
+const sharedAssetsRegex = /^\/shared\/(([A-Za-z0-9_./-]+\.(?:css|json)))$/;
 
 const routeHandler = new URITree({
     route: '/',
@@ -50,7 +50,7 @@ const routeHandler = new URITree({
         }),
         'shared': new URITree({
             route: '/shared',
-            availableAssetsAtRoute: sharedCssAssetsRegex,
+            availableAssetsAtRoute: sharedAssetsRegex,
             serverRootDir: path.join(__dirname, '../shared/dist'),
         }),
         'hostname': new URITree({
@@ -59,12 +59,12 @@ const routeHandler = new URITree({
                 'GET': getHostname,
             }
         }),
-        'uptime': new URITree({
-            route: '/uptime',
-            handlerMap: {
-                'GET': getUptime,
-            }
-        }),
+        // 'uptime': new URITree({
+        //     route: '/uptime',
+        //     handlerMap: {
+        //         'GET': getUptime,
+        //     }
+        // }),
     }
 });
 

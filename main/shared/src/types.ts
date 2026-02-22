@@ -107,6 +107,8 @@ export class URITree implements URITreeData {
             res.setHeader('Content-Type', 'text/html');
         } else if (staticFilename.endsWith('.css')) {
             res.setHeader('Content-Type', 'text/css');
+        } else if (staticFilename.endsWith('.json')) {
+            res.setHeader('Content-Type', 'application/json');
         } else if (staticFilename.endsWith('.js') || staticFilename.endsWith('.ts') || staticFilename.endsWith('.map')) {
             // res.setHeader('Content-Type', 'application/json');
             res.setHeader('Content-Type', 'text/javascript');

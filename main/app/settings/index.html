@@ -10,7 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="/shared/styles/settings.css" />
+    <link id="theme-stylesheet" rel="stylesheet" href="/shared/styles/settings.css" />
   </head>
   <body>
     <main class="settings-page">
@@ -23,20 +23,18 @@
       <section class="settings-card" aria-label="Theme settings">
         <div class="settings-card-head">
           <h2>Theme</h2>
-          <span class="chip chip-draft">Placeholder</span>
+          <span class="chip chip-draft">POC</span>
         </div>
         <p class="settings-description">
-          Theme switching is not implemented yet. This section is scaffolded for the next iteration.
+          Select a theme and return to Home to see it applied there after reload.
         </p>
 
         <label class="field-label" for="theme-picker">Theme preset</label>
-        <select id="theme-picker" name="theme-picker" disabled aria-disabled="true">
-          <option selected>Default (coming soon)</option>
-          <option>Dark (coming soon)</option>
-          <option>Light (coming soon)</option>
+        <select id="theme-picker" name="theme-picker">
+          <option selected disabled>Loading themes...</option>
         </select>
 
-        <p class="field-help">No changes are persisted yet.</p>
+        <p class="field-help">Selection is saved in localStorage for this browser.</p>
       </section>
 
       <footer class="settings-footer">

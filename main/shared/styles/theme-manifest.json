@@ -1,0 +1,18 @@
+[
+  {
+    "id": "midnight",
+    "label": "Midnight",
+    "styles": {
+      "home": "/shared/styles/home-default.css",
+      "settings": "/shared/styles/settings.css"
+    }
+  },
+  {
+    "id": "violet",
+    "label": "Violet",
+    "styles": {
+      "home": "/shared/styles/home-alt.css",
+      "settings": "/shared/styles/settings-alt.css"
+    }
+  }
+]
