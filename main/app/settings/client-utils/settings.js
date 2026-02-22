@@ -24,8 +24,22 @@ async function fetchThemeManifest() {
 
 function applyTheme(theme) {
   const cssPath = theme?.styles?.settings;
-  if (!themeStylesheet || !cssPath) return;
-  themeStylesheet.setAttribute('href', cssPath);
+  if (!cssPath) return null;
+  return cssPath;
+}
+
+async function fetchValidatedThemeCssPath(themeId, page) {
+  const response = await fetch(`/theme-config?themeId=${encodeURIComponent(themeId)}&page=${encodeURIComponent(page)}`, {
+    cache: 'no-store'
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to resolve theme path: ${response.status}`);
+  }
+  const payload = await response.json();
+  if (!payload?.cssPath || typeof payload.cssPath !== 'string') {
+    throw new Error('Invalid theme config response');
+  }
+  return payload.cssPath;
 }
 
 function getStoredThemeId() {
@@ -70,15 +84,26 @@ async function initThemePicker() {
     const initialTheme = themes.find(theme => theme.id === initialThemeId);
     if (!initialTheme) return;
 
-    applyTheme(initialTheme);
+    const initialCssPath = await fetchValidatedThemeCssPath(initialTheme.id, 'settings');
+    if (themeStylesheet) {
+      themeStylesheet.setAttribute('href', initialCssPath);
+    }
     setStoredThemeId(initialTheme.id);
     populateThemePicker(themes, initialTheme.id);
 
-    themePicker.addEventListener('change', () => {
+    themePicker.addEventListener('change', async () => {
       const nextTheme = themes.find(theme => theme.id === themePicker.value);
       if (!nextTheme) return;
-      applyTheme(nextTheme);
-      setStoredThemeId(nextTheme.id);
+      try {
+        const cssPath = await fetchValidatedThemeCssPath(nextTheme.id, 'settings');
+        if (themeStylesheet) {
+          themeStylesheet.setAttribute('href', cssPath);
+        }
+        applyTheme(nextTheme);
+        setStoredThemeId(nextTheme.id);
+      } catch (error) {
+        console.error(error);
+      }
     });
   } catch (error) {
     console.error(error);

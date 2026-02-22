@@ -85,6 +85,15 @@ export class URITree implements URITreeData {
     // }
 
     private serveStaticFile(req: http.IncomingMessage, res: http.ServerResponse, staticFilename?: string, staticFilepath?: string): void {
+        if (req.method !== 'GET' && req.method !== 'HEAD') {
+            res.writeHead(405, 'Method Not Allowed', {
+                'Content-Type': 'application/json',
+                'Allow': 'GET, HEAD',
+            });
+            res.end(JSON.stringify({ err: 'Method Not Allowed' }));
+            return;
+        }
+
         if (!staticFilename) {
             const fileMatcher = this.availableAssetsAtRoute;
             if (!fileMatcher) staticFilename = 'index.html';
@@ -105,6 +114,13 @@ export class URITree implements URITreeData {
         let subpath = '';
         if (staticFilename.endsWith('.html')) {
             res.setHeader('Content-Type', 'text/html');
+            res.setHeader(
+                'Content-Security-Policy',
+                "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' ws: wss:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
+            );
+            res.setHeader('X-Content-Type-Options', 'nosniff');
+            res.setHeader('Referrer-Policy', 'no-referrer');
+            res.setHeader('X-Frame-Options', 'DENY');
         } else if (staticFilename.endsWith('.css')) {
             res.setHeader('Content-Type', 'text/css');
         } else if (staticFilename.endsWith('.json')) {
@@ -188,7 +204,12 @@ export class URITree implements URITreeData {
         // find out if we should pass this to a child or serve 404
         // console.log(`Resolving remaining URI: ${remainingURI}`);
         if (remainingURI.charAt(0) == '/') remainingURI = remainingURI.substring(1);
-        const delimiterIndex = remainingURI.indexOf('/');
+        const delimiterCandidates = [
+            remainingURI.indexOf('/'),
+            remainingURI.indexOf('?'),
+            remainingURI.indexOf('#')
+        ].filter(index => index > -1);
+        const delimiterIndex = delimiterCandidates.length > 0 ? Math.min(...delimiterCandidates) : -1;
         const childToLookFor = delimiterIndex > -1 ? remainingURI.substring(0, delimiterIndex) : remainingURI;
         // console.log(`Looking for child route handler: ${childToLookFor}`);
         if (!this.childRoutes || !(childToLookFor in this.childRoutes)) {
