@@ -26,6 +26,8 @@ const hostname = '0.0.0.0';
 const port = 3000;
 
 const availableAssetsRegex = /^\/((?:app\.css|(?:setup|utils(?:-(?:ui|socket))?)\.(?:.*)[jt]s(?:\.map)?))$/;
+const settingsAssetsRegex = /^\/settings\/((?:settings\.js(?:\.map)?))$/;
+const sharedCssAssetsRegex = /^\/shared\/(([A-Za-z0-9_\/-]+\.css))$/;
 
 const routeHandler = new URITree({
     route: '/',
@@ -40,6 +42,16 @@ const routeHandler = new URITree({
         'chat': new URITree({
             route: '/chat',
             serverRootDir: path.join(__dirname, 'chat'),
+        }),
+        'settings': new URITree({
+            route: '/settings',
+            availableAssetsAtRoute: settingsAssetsRegex,
+            serverRootDir: path.join(__dirname, 'settings'),
+        }),
+        'shared': new URITree({
+            route: '/shared',
+            availableAssetsAtRoute: sharedCssAssetsRegex,
+            serverRootDir: path.join(__dirname, '../shared/dist'),
         }),
         'hostname': new URITree({
             route: '/hostname',

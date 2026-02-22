@@ -46,6 +46,7 @@ COPY --from=base /usr/src/shared/node_modules ../shared/node_modules
 COPY app/index.html ./
 COPY app/app.css ./
 COPY app/chat ./chat
+COPY app/settings/* ./settings
 
 # VOLUME [ "/app" ]
 
