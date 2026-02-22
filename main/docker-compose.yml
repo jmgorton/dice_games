@@ -1,9 +1,9 @@
 # version: '3'
 services: 
-  # shared:
-  #   build:
-  #     context: .
-  #     dockerfile: Dockerfile.shared
+  shared:
+    build:
+      context: .
+      dockerfile: Dockerfile.shared
   app:
     build: # ./app 
       context: .
@@ -33,6 +33,7 @@ services:
       - ./nginx/401.html:/etc/nginx/401.html
     depends_on:
       - app
+      - shared
       - auth
       - play
       - collab

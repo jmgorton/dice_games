@@ -45,9 +45,11 @@ COPY --from=base /usr/src/shared/dist ../shared/dist
 COPY --from=base /usr/src/shared/node_modules ../shared/node_modules
 COPY app/index.html ./
 COPY app/app.css ./
-COPY app/client-utils ./client-utils
+COPY app/client-utils/setup.ts ./client-utils/setup.ts
+COPY app/client-utils/utils.ts ./client-utils/utils.ts
+COPY app/client-utils/utils-ui.ts ./client-utils/utils-ui.ts
+COPY app/client-utils/utils-socket.ts ./client-utils/utils-socket.ts
 COPY app/chat ./chat
-COPY app/settings ./settings
 
 # VOLUME [ "/app" ]
 

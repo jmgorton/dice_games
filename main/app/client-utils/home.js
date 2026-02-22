@@ -6,7 +6,7 @@ const wsProtocol = protocol === 'https:' ? 'wss:' : 'ws:';
 const playWsUrl = `${wsProtocol}//${host}/play`;
 const collabWsUrl = `${wsProtocol}//${host}/collab`;
 const THEME_KEY = 'diceGamesThemeId';
-const MANIFEST_PATH = '/shared/styles/theme-manifest.json';
+const MANIFEST_PATH = '/theme-manifest.json';
 
 const playHostnameEl = document.getElementById('play-hostname');
 const playUptimeEl = document.getElementById('play-uptime');

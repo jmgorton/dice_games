@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dice Games - Login</title>
-    <link id="theme-stylesheet" rel="stylesheet" href="/auth/styles/auth-midnight.css">
+    <link id="theme-stylesheet" rel="stylesheet" href="/shared/styles/auth-midnight.css">
 </head>
 <body>
     <div class="auth-container">
@@ -97,7 +97,7 @@
 
     <script>
         const THEME_KEY = 'diceGamesThemeId';
-        const MANIFEST_PATH = '/auth/theme-manifest.json';
+        const MANIFEST_PATH = '/theme-manifest.json';
 
         async function fetchThemeManifest() {
             const response = await fetch(MANIFEST_PATH, { cache: 'no-store' });
@@ -108,7 +108,7 @@
         }
 
         async function fetchValidatedThemeCssPath(themeId, page) {
-            const response = await fetch(`/auth/theme-config?themeId=${encodeURIComponent(themeId)}&page=${encodeURIComponent(page)}`, { cache: 'no-store' });
+            const response = await fetch(`/theme-config?themeId=${encodeURIComponent(themeId)}&page=${encodeURIComponent(page)}`, { cache: 'no-store' });
             if (!response.ok) throw new Error(`Failed to resolve theme path: ${response.status}`);
             const payload = await response.json();
             if (!payload?.cssPath || typeof payload.cssPath !== 'string') {

@@ -25,67 +25,7 @@ const __dirname = path.dirname(__filename);
 const hostname = '0.0.0.0';
 const port = 3000;
 
-const availableAssetsRegex = /^\/((?:app\.css|home\.js(?:\.map)?|(?:setup|utils(?:-(?:ui|socket))?)\.(?:.*)[jt]s(?:\.map)?))$/;
-const settingsAssetsRegex = /^\/settings\/((?:settings\.js(?:\.map)?))$/;
-const sharedAssetsRegex = /^\/shared\/(([A-Za-z0-9_./-]+\.(?:css|json)))$/;
-const themeManifestPath = path.join(__dirname, '../shared/dist/styles/theme-manifest.json');
-
-type ThemeManifest = {
-    id: string;
-    label: string;
-    styles?: {
-        home?: string;
-        settings?: string;
-    };
-}[];
-
-let themeManifestCache: ThemeManifest | null = null;
-
-function getThemeManifest(): ThemeManifest {
-    if (themeManifestCache) return themeManifestCache;
-    const rawManifest = fs.readFileSync(themeManifestPath, 'utf8');
-    const parsedManifest = JSON.parse(rawManifest);
-    if (!Array.isArray(parsedManifest)) {
-        throw new Error('Theme manifest is invalid');
-    }
-    themeManifestCache = parsedManifest;
-    return themeManifestCache;
-}
-
-function getThemeConfig(req: http.IncomingMessage, res: http.ServerResponse) {
-    try {
-        const requestUrl = new URL(req.url ?? '/theme-config', `http://${req.headers.host ?? 'localhost'}`);
-        const themeId = requestUrl.searchParams.get('themeId');
-        const page = requestUrl.searchParams.get('page');
-
-        if (!themeId || !page || (page !== 'home' && page !== 'settings')) {
-            res.writeHead(400, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ err: 'Invalid theme config request' }));
-            return;
-        }
-
-        const manifest = getThemeManifest();
-        const selectedTheme = manifest.find(theme => theme.id === themeId);
-        if (!selectedTheme) {
-            res.writeHead(404, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ err: 'Theme not found' }));
-            return;
-        }
-
-        const cssPath = selectedTheme.styles?.[page];
-        if (!cssPath || !cssPath.startsWith('/shared/styles/') || !cssPath.endsWith('.css')) {
-            res.writeHead(400, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ err: 'Theme path is invalid' }));
-            return;
-        }
-
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ themeId: selectedTheme.id, page, cssPath }));
-    } catch (error: any) {
-        res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ err: error.message ?? 'Internal error' }));
-    }
-}
+const availableAssetsRegex = /^\/((?:app\.css|(?:setup|utils(?:-(?:ui|socket))?)\.(?:.*)[jt]s(?:\.map)?))$/;
 
 const routeHandler = new URITree({
     route: '/',
@@ -101,26 +41,10 @@ const routeHandler = new URITree({
             route: '/chat',
             serverRootDir: path.join(__dirname, 'chat'),
         }),
-        'settings': new URITree({
-            route: '/settings',
-            availableAssetsAtRoute: settingsAssetsRegex,
-            serverRootDir: path.join(__dirname, 'settings'),
-        }),
-        'shared': new URITree({
-            route: '/shared',
-            availableAssetsAtRoute: sharedAssetsRegex,
-            serverRootDir: path.join(__dirname, '../shared/dist'),
-        }),
         'hostname': new URITree({
             route: '/hostname',
             handlerMap: {
                 'GET': getHostname,
-            }
-        }),
-        'theme-config': new URITree({
-            route: '/theme-config',
-            handlerMap: {
-                'GET': getThemeConfig,
             }
         }),
         // 'uptime': new URITree({
@@ -359,7 +283,7 @@ export function getRoot(req: http.IncomingMessage, res: http.ServerResponse) {
 
     readStream.pipe(res);
 
-    readStream.on('error', (err) => {
+    readStream.on('error', (err: unknown) => {
         console.error(err);
         res.writeHead(404, { 'Content-Type': 'text/plain' });
         // res.end(`

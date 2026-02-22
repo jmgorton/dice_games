@@ -5,7 +5,7 @@ if (username !== 'admin') {
 }
 
 const THEME_KEY = 'diceGamesThemeId';
-const MANIFEST_PATH = '/shared/styles/theme-manifest.json';
+const MANIFEST_PATH = '/theme-manifest.json';
 
 const themePicker = document.getElementById('theme-picker');
 const themeStylesheet = document.getElementById('theme-stylesheet');

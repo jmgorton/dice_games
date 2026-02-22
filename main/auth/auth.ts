@@ -16,111 +16,6 @@ export const __dirname = path.dirname(__filename);
 
 const hostname = '0.0.0.0';
 const port = 6502;
-const themeManifestPath = path.join(__dirname, '../shared/dist/styles/theme-manifest.json');
-const sharedStylesDir = path.join(__dirname, '../shared/dist/styles');
-
-type ThemeManifest = {
-    id: string;
-    label: string;
-    styles?: {
-        home?: string;
-        settings?: string;
-        auth?: string;
-    };
-}[];
-
-let themeManifestCache: ThemeManifest | null = null;
-
-function getThemeManifest(): ThemeManifest {
-    if (themeManifestCache) return themeManifestCache;
-    const rawManifest = fs.readFileSync(themeManifestPath, 'utf8');
-    const parsedManifest = JSON.parse(rawManifest);
-    if (!Array.isArray(parsedManifest)) {
-        throw new Error('Theme manifest is invalid');
-    }
-    themeManifestCache = parsedManifest;
-    return themeManifestCache;
-}
-
-function serveThemeManifest(_req: http.IncomingMessage, res: http.ServerResponse) {
-    try {
-        const manifest = getThemeManifest();
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(manifest));
-    } catch (err: any) {
-        res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: err.message ?? 'Unable to load theme manifest' }));
-    }
-}
-
-function getThemeConfig(req: http.IncomingMessage, res: http.ServerResponse) {
-    try {
-        const requestUrl = new URL(req.url ?? '/auth/theme-config', `http://${req.headers.host ?? 'localhost'}`);
-        const themeId = requestUrl.searchParams.get('themeId');
-        const page = requestUrl.searchParams.get('page');
-
-        if (!themeId || !page || (page !== 'auth' && page !== 'home' && page !== 'settings')) {
-            res.writeHead(400, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'Invalid theme config request' }));
-            return;
-        }
-
-        const manifest = getThemeManifest();
-        const selectedTheme = manifest.find(theme => theme.id === themeId);
-        if (!selectedTheme) {
-            res.writeHead(404, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'Theme not found' }));
-            return;
-        }
-
-        const cssPath = selectedTheme.styles?.[page as 'auth' | 'home' | 'settings'];
-        if (!cssPath || !cssPath.startsWith('/shared/styles/') || !cssPath.endsWith('.css')) {
-            res.writeHead(400, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: 'Theme path is invalid' }));
-            return;
-        }
-
-        const cssFilename = path.basename(cssPath);
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ themeId: selectedTheme.id, page, cssPath: `/auth/styles/${cssFilename}` }));
-    } catch (err: any) {
-        res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: err.message ?? 'Unable to resolve theme config' }));
-    }
-}
-
-function serveThemeStylesheet(req: http.IncomingMessage, res: http.ServerResponse) {
-    if (req.method !== 'GET' && req.method !== 'HEAD') {
-        res.writeHead(405, { 'Content-Type': 'application/json', 'Allow': 'GET, HEAD' });
-        res.end(JSON.stringify({ error: 'Method Not Allowed' }));
-        return;
-    }
-
-    const requestUrl = new URL(req.url ?? '/auth/styles', `http://${req.headers.host ?? 'localhost'}`);
-    const cssFilename = path.basename(requestUrl.pathname);
-    if (!/^[A-Za-z0-9._-]+\.css$/.test(cssFilename)) {
-        res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Invalid stylesheet path' }));
-        return;
-    }
-
-    const filePath = path.join(sharedStylesDir, cssFilename);
-    if (!filePath.startsWith(sharedStylesDir)) {
-        res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Invalid stylesheet path' }));
-        return;
-    }
-
-    const readStream = fs.createReadStream(filePath);
-    res.writeHead(200, { 'Content-Type': 'text/css' });
-
-    readStream.on('error', () => {
-        res.writeHead(404, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Not Found' }));
-    });
-
-    readStream.pipe(res);
-}
 
 // In-memory user credentials store: username -> password
 // In production, use proper bcrypt hashing and persistent storage
@@ -454,12 +349,6 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === 'GET' && pathname === '/auth') {
         serveStaticFile(req, res);
-    } else if (req.method === 'GET' && pathname === '/auth/theme-manifest.json') {
-        serveThemeManifest(req, res);
-    } else if (req.method === 'GET' && pathname === '/auth/theme-config') {
-        getThemeConfig(req, res);
-    } else if (req.method === 'GET' && pathname.startsWith('/auth/styles/')) {
-        serveThemeStylesheet(req, res);
     } else if (req.method === 'POST' && pathname === '/auth/login') {
         await handleLogin(req, res);
     } else if (req.method === 'POST' && pathname === '/auth/register') {
