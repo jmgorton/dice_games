@@ -4,7 +4,8 @@
     "label": "Midnight",
     "styles": {
       "home": "/shared/styles/home-default.css",
-      "settings": "/shared/styles/settings.css"
+      "settings": "/shared/styles/settings.css",
+      "auth": "/shared/styles/auth-midnight.css"
     }
   },
   {
@@ -12,7 +13,17 @@
     "label": "Violet",
     "styles": {
       "home": "/shared/styles/home-alt.css",
-      "settings": "/shared/styles/settings-alt.css"
+      "settings": "/shared/styles/settings-alt.css",
+      "auth": "/shared/styles/auth-violet.css"
+    }
+  },
+  {
+    "id": "aurora",
+    "label": "Aurora",
+    "styles": {
+      "home": "/shared/styles/home-aurora.css",
+      "settings": "/shared/styles/settings-aurora.css",
+      "auth": "/shared/styles/auth-aurora.css"
     }
   }
 ]
