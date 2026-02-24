@@ -18,5 +18,6 @@ COPY --from=base /usr/src/shared/dist ./dist
 COPY --from=base /usr/src/shared/settings/index.html ./dist/settings/index.html
 COPY --from=base /usr/src/shared/settings/settings.js ./dist/settings/settings.js
 COPY --from=base /usr/src/app/client-utils/home.js ./dist/client-utils/home.js
+COPY --from=base /usr/src/shared/client-utils/play.js ./dist/client-utils/play.js
 
 CMD ["node", "dist/shared-server.js"]

@@ -21,6 +21,7 @@ type ThemeManifest = {
         home?: string;
         settings?: string;
         auth?: string;
+        play?: string;
     };
 }[];
 
@@ -57,7 +58,7 @@ function getThemeConfig(req: http.IncomingMessage, res: http.ServerResponse) {
         const themeId = requestUrl.searchParams.get('themeId');
         const page = requestUrl.searchParams.get('page');
 
-        if (!themeId || !page || (page !== 'auth' && page !== 'home' && page !== 'settings')) {
+        if (!themeId || !page || (page !== 'auth' && page !== 'home' && page !== 'settings' && page !== 'play')) {
             sendJson(res, 400, { error: 'Invalid theme config request' });
             return;
         }
@@ -69,7 +70,7 @@ function getThemeConfig(req: http.IncomingMessage, res: http.ServerResponse) {
             return;
         }
 
-        const cssPath = selectedTheme.styles?.[page as 'auth' | 'home' | 'settings'];
+        const cssPath = selectedTheme.styles?.[page as 'auth' | 'home' | 'settings' | 'play'];
         if (!cssPath || !cssPath.startsWith('/shared/styles/') || !cssPath.endsWith('.css')) {
             sendJson(res, 400, { error: 'Theme path is invalid' });
             return;
@@ -119,7 +120,7 @@ function serveSharedClientAsset(req: http.IncomingMessage, res: http.ServerRespo
     }
 
     const relativeAssetPath = requestUrl.pathname.substring(prefix.length);
-    if (relativeAssetPath !== 'home.js') {
+    if (relativeAssetPath !== 'home.js' && relativeAssetPath !== 'play.js') {
         sendJson(res, 404, { error: 'Not Found' });
         return;
     }
