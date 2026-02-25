@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Qwixx Lobby</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="/shared/styles/play-qwixx-midnight.css" />
+    </head>
+    <body>
+        <main class="page">
+            <header class="header">
+                <p class="eyebrow">Qwixx • Midnight</p>
+                <h1>Lobby and live room</h1>
+                <p class="lead">Create a room or join an existing one. Up to 8 players per room plus spectators.</p>
+            </header>
+
+            <section id="connection-banner" class="card status">Connecting to room server…</section>
+
+            <section id="lobby" class="card">
+                <h2>Lobby</h2>
+                <div class="row two-col">
+                    <label>
+                        Display name
+                        <input id="username" type="text" maxlength="24" placeholder="Your name" />
+                    </label>
+                    <div class="actions">
+                        <button id="set-name" type="button">Set name</button>
+                        <button id="create-room" type="button" class="primary">Create room</button>
+                    </div>
+                </div>
+                <div class="row two-col">
+                    <label>
+                        Room ID
+                        <input id="room-id" type="text" maxlength="8" placeholder="ABC123" />
+                    </label>
+                    <div class="actions">
+                        <button id="join-room" type="button">Join room</button>
+                    </div>
+                </div>
+                <p class="hint">Rules summary: cross left-to-right, active player rolls all dice, shared white sum for all, white+color option for active player, locks remove color dice.</p>
+            </section>
+
+            <section id="room" class="card hidden">
+                <div class="room-heading">
+                    <h2>Room <span id="room-code">—</span></h2>
+                    <span id="room-state" class="pill">Lobby</span>
+                </div>
+
+                <div class="row split">
+                    <div>
+                        <p><strong>Host:</strong> <span id="host-name">—</span></p>
+                        <p><strong>You are:</strong> <span id="self-role">—</span></p>
+                        <p><strong>Active turn:</strong> <span id="active-player">—</span></p>
+                        <p><strong>Turn #:</strong> <span id="turn-number">—</span></p>
+                        <p><strong>Time left:</strong> <span id="turn-timer">—</span></p>
+                    </div>
+                    <div class="actions vertical">
+                        <button id="start-game" type="button" class="primary">Start game</button>
+                        <button id="roll-dice" type="button">Roll dice</button>
+                        <button id="end-turn" type="button">End turn</button>
+                        <button id="leave-room" type="button" class="danger">Leave room</button>
+                    </div>
+                </div>
+
+                <div class="row two-col">
+                    <div>
+                        <h3>Participants</h3>
+                        <ul id="participants" class="list"></ul>
+                    </div>
+                    <div>
+                        <h3>Locked colors</h3>
+                        <div id="locked-colors" class="chips"></div>
+                    </div>
+                </div>
+
+                <div class="row two-col">
+                    <div>
+                        <h3>Last roll</h3>
+                        <div id="dice" class="dice"></div>
+                    </div>
+                    <div>
+                        <h3>Roll history</h3>
+                        <ul id="roll-history" class="list compact"></ul>
+                    </div>
+                </div>
+            </section>
+
+            <section id="scoresheet" class="card hidden">
+                <div class="room-heading">
+                    <h2>Your scoresheet</h2>
+                    <p id="score-total" class="pill">Score: 0</p>
+                </div>
+                <div id="rows"></div>
+                <div class="row penalties">
+                    <strong>Penalties</strong>
+                    <button id="penalty-down" type="button">-</button>
+                    <span id="penalty-count">0</span>
+                    <button id="penalty-up" type="button">+</button>
+                </div>
+                <p class="hint">Scoresheets remain private. Your updates are only sent back to your own session.</p>
+            </section>
+
+            <section id="messages" class="card status"></section>
+        </main>
+        <script type="module" src="/play/qwixx-client.js"></script>
+    </body>
+</html>
