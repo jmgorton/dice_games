@@ -3,8 +3,8 @@
     "id": "midnight",
     "label": "Midnight",
     "styles": {
-      "home": "/shared/styles/home-default.css",
-      "settings": "/shared/styles/settings.css",
+      "home": "/shared/styles/home-midnight.css",
+      "settings": "/shared/styles/settings-midnight.css",
       "auth": "/shared/styles/auth-midnight.css",
       "play": "/shared/styles/play-midnight.css"
     }
@@ -13,8 +13,8 @@
     "id": "violet",
     "label": "Violet",
     "styles": {
-      "home": "/shared/styles/home-alt.css",
-      "settings": "/shared/styles/settings-alt.css",
+      "home": "/shared/styles/home-violet.css",
+      "settings": "/shared/styles/settings-violet.css",
       "auth": "/shared/styles/auth-violet.css",
       "play": "/shared/styles/play-violet.css"
     }

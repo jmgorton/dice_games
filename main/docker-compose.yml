@@ -31,6 +31,9 @@ services:
     volumes:
       - ./nginx/lb.conf:/etc/nginx/conf.d/lb.conf
       - ./nginx/401.html:/etc/nginx/401.html
+      - ./nginx/403.html:/etc/nginx/403.html
+      - ./nginx/50x.html:/etc/nginx/50x.html
+      - ./nginx/error-pages.css:/etc/nginx/error-pages.css
     depends_on:
       - app
       - shared
