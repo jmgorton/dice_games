@@ -20,7 +20,7 @@
                 <p class="lead">Create a room or join an existing one. Up to 8 players per room plus spectators.</p>
             </header>
 
-            <section id="connection-banner" class="card status">Connecting to room server…</section>
+            <!-- <section id="connection-banner" class="card status">Connecting to room server…</section> -->
 
             <section id="lobby" class="card">
                 <h2>Lobby</h2>
@@ -46,67 +46,80 @@
                 <p class="hint">Rules summary: cross left-to-right, active player rolls all dice, shared white sum for all, white+color option for active player, locks remove color dice.</p>
             </section>
 
-            <section id="room" class="card hidden">
-                <div class="room-heading">
-                    <h2>Room <span id="room-code">—</span></h2>
-                    <span id="room-state" class="pill">Lobby</span>
+            <div id="gameroom" class="gameroom hidden">
+                <div class="gameroom-left">
+                    <div class="panel-toggle">
+                        <button id="toggle-room" type="button" class="toggle-btn active">Room & Controls</button>
+                        <button id="toggle-connections" type="button" class="toggle-btn">Connections</button>
+                    </div>
+
+                    <section id="room" class="card panel-a active">
+                        <div class="room-heading">
+                            <h2>Room <span id="room-code">—</span></h2>
+                            <span id="room-state" class="pill">Lobby</span>
+                        </div>
+
+                        <div class="info-grid">
+                            <p><strong>Host:</strong> <span id="host-name">—</span></p>
+                            <p><strong>You are:</strong> <span id="self-role">—</span></p>
+                            <p><strong>Active turn:</strong> <span id="active-player">—</span></p>
+                            <p><strong>Turn #:</strong> <span id="turn-number">—</span></p>
+                            <p><strong>Time left:</strong> <span id="turn-timer">—</span></p>
+                        </div>
+
+                        <div class="actions vertical">
+                            <button id="start-game" type="button" class="primary">Start game</button>
+                            <button id="roll-dice" type="button">Roll dice</button>
+                            <button id="end-turn" type="button">End turn</button>
+                            <button id="leave-room" type="button" class="danger">Leave room</button>
+                        </div>
+
+                        <div>
+                            <h3>Locked colors</h3>
+                            <div id="locked-colors" class="chips"></div>
+                        </div>
+
+                        <div>
+                            <h3>Last roll</h3>
+                            <div id="dice" class="dice"></div>
+                        </div>
+
+                        <div>
+                            <h3>Roll history</h3>
+                            <ul id="roll-history" class="list compact"></ul>
+                        </div>
+                    </section>
+
+                    <section id="panel-b" class="card panel-b">
+                        <div id="connection-status">
+                            <h3>Connection Status</h3>
+                            <div id="message-panel" class="status"></div>
+                        </div>
+
+                        <div>
+                            <h3>Participants</h3>
+                            <ul id="participants" class="list"></ul>
+                        </div>
+                    </section>
                 </div>
 
-                <div class="row split">
-                    <div>
-                        <p><strong>Host:</strong> <span id="host-name">—</span></p>
-                        <p><strong>You are:</strong> <span id="self-role">—</span></p>
-                        <p><strong>Active turn:</strong> <span id="active-player">—</span></p>
-                        <p><strong>Turn #:</strong> <span id="turn-number">—</span></p>
-                        <p><strong>Time left:</strong> <span id="turn-timer">—</span></p>
+                <section id="scoresheet" class="card gameroom-right">
+                    <div class="room-heading">
+                        <h2>Your scoresheet</h2>
+                        <p id="score-total" class="pill">Score: 0</p>
                     </div>
-                    <div class="actions vertical">
-                        <button id="start-game" type="button" class="primary">Start game</button>
-                        <button id="roll-dice" type="button">Roll dice</button>
-                        <button id="end-turn" type="button">End turn</button>
-                        <button id="leave-room" type="button" class="danger">Leave room</button>
+                    <div id="rows"></div>
+                    <div class="row penalties">
+                        <strong>Penalties</strong>
+                        <button id="penalty-down" type="button">-</button>
+                        <span id="penalty-count">0</span>
+                        <button id="penalty-up" type="button">+</button>
                     </div>
-                </div>
+                    <p class="hint">Scoresheets remain private. Your updates are only sent back to your own session.</p>
+                </section>
+            </div>
 
-                <div class="row two-col">
-                    <div>
-                        <h3>Participants</h3>
-                        <ul id="participants" class="list"></ul>
-                    </div>
-                    <div>
-                        <h3>Locked colors</h3>
-                        <div id="locked-colors" class="chips"></div>
-                    </div>
-                </div>
-
-                <div class="row two-col">
-                    <div>
-                        <h3>Last roll</h3>
-                        <div id="dice" class="dice"></div>
-                    </div>
-                    <div>
-                        <h3>Roll history</h3>
-                        <ul id="roll-history" class="list compact"></ul>
-                    </div>
-                </div>
-            </section>
-
-            <section id="scoresheet" class="card hidden">
-                <div class="room-heading">
-                    <h2>Your scoresheet</h2>
-                    <p id="score-total" class="pill">Score: 0</p>
-                </div>
-                <div id="rows"></div>
-                <div class="row penalties">
-                    <strong>Penalties</strong>
-                    <button id="penalty-down" type="button">-</button>
-                    <span id="penalty-count">0</span>
-                    <button id="penalty-up" type="button">+</button>
-                </div>
-                <p class="hint">Scoresheets remain private. Your updates are only sent back to your own session.</p>
-            </section>
-
-            <section id="messages" class="card status"></section>
+            <section id="messages" class="card status hidden"></section>
         </main>
         <script type="module" src="/play/qwixx-client.js"></script>
     </body>

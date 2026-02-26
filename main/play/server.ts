@@ -39,12 +39,12 @@ const routeHandler = new URITree({
     childRoutes: {
         'lotto': new URITree({
             route: '/play/lotto',
-            // serverRootDir: path.join(__dirname, 'lotto'),
+            serverRootDir: path.join(__dirname, 'lotto'),
         }),
         'qwixx': new URITree({
             route: '/play/qwixx',
             availableAssetsAtRoute: /^\/play\/qwixx(?:\/[A-Za-z0-9_-]+)?$/,
-            // serverRootDir: path.join(__dirname, 'qwixx'),
+            serverRootDir: path.join(__dirname, 'qwixx'),
         }),
         'hostname': new URITree({
             route: '/play/hostname',

@@ -33,6 +33,72 @@ body {
   gap: 14px;
 }
 
+.gameroom {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.gameroom-left {
+  display: grid;
+  gap: 14px;
+}
+
+.gameroom-right {
+  max-height: 100vh;
+  overflow-y: auto;
+}
+
+.panel-toggle {
+  display: flex;
+  gap: 8px;
+  padding: 0;
+}
+
+.toggle-btn {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid var(--outline);
+  background: var(--surface);
+  color: var(--muted);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toggle-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.toggle-btn:hover:not(.active) {
+  border-color: var(--accent);
+  color: var(--ink);
+}
+
+.card.panel-a,
+.card.panel-b {
+  display: none !important;
+}
+
+.card.panel-a.active,
+.card.panel-b.active {
+  display: grid !important;
+}
+
+.info-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.info-grid p {
+  margin: 0;
+  font-size: 14px;
+}
+
 .header {
   display: grid;
   gap: 10px;
@@ -214,6 +280,26 @@ button.danger {
   margin-bottom: 8px;
 }
 
+.sheet-row.red {
+  background: rgba(139, 58, 58, 0.25);
+  border-color: rgba(139, 58, 58, 0.4);
+}
+
+.sheet-row.yellow {
+  background: rgba(139, 122, 46, 0.25);
+  border-color: rgba(139, 122, 46, 0.4);
+}
+
+.sheet-row.green {
+  background: rgba(58, 107, 74, 0.25);
+  border-color: rgba(58, 107, 74, 0.4);
+}
+
+.sheet-row.blue {
+  background: rgba(58, 90, 122, 0.25);
+  border-color: rgba(58, 90, 122, 0.4);
+}
+
 .numbers {
   display: grid;
   gap: 6px;
@@ -232,8 +318,10 @@ button.danger {
   font-weight: 600;
 }
 
-.sheet-row .lock {
-  justify-self: end;
+.numbers button.lock-button::after {
+  content: ' 🔒';
+  opacity: 0.4;
+  margin-left: 2px;
 }
 
 .penalties {
@@ -247,6 +335,14 @@ button.danger {
 }
 
 @media (max-width: 900px) {
+  .gameroom {
+    grid-template-columns: 1fr;
+  }
+
+  .gameroom-right {
+    max-height: none;
+  }
+
   .split {
     grid-template-columns: 1fr;
   }

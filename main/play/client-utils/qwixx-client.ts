@@ -66,11 +66,16 @@ const rollDiceButton = document.getElementById('roll-dice') as HTMLButtonElement
 const endTurnButton = document.getElementById('end-turn') as HTMLButtonElement;
 const leaveRoomButton = document.getElementById('leave-room') as HTMLButtonElement;
 
-const connectionBanner = document.getElementById('connection-banner') as HTMLElement;
+// const connectionBanner = document.getElementById('connection-banner') as HTMLElement;
 const lobbySection = document.getElementById('lobby') as HTMLElement;
+const gameroomSection = document.getElementById('gameroom') as HTMLElement;
 const roomSection = document.getElementById('room') as HTMLElement;
 const scoreSection = document.getElementById('scoresheet') as HTMLElement;
-const messagePanel = document.getElementById('messages') as HTMLElement;
+const panelA = document.getElementById('room') as HTMLElement;
+const panelB = document.getElementById('panel-b') as HTMLElement;
+const toggleRoomButton = document.getElementById('toggle-room') as HTMLButtonElement;
+const toggleConnectionsButton = document.getElementById('toggle-connections') as HTMLButtonElement;
+const messagePanel = document.getElementById('message-panel') as HTMLElement;
 
 const roomCodeEl = document.getElementById('room-code') as HTMLElement;
 const roomStateEl = document.getElementById('room-state') as HTMLElement;
@@ -107,6 +112,23 @@ let localSheet: Sheet = {
 
 usernameInput.value = username;
 
+function setActivePanel(isRoomPanel: boolean): void {
+    if (isRoomPanel) {
+        panelA.classList.add('active');
+        panelB.classList.remove('active');
+        toggleRoomButton.classList.add('active');
+        toggleConnectionsButton.classList.remove('active');
+    } else {
+        panelA.classList.remove('active');
+        panelB.classList.add('active');
+        toggleRoomButton.classList.remove('active');
+        toggleConnectionsButton.classList.add('active');
+    }
+}
+
+toggleRoomButton.addEventListener('click', () => setActivePanel(true));
+toggleConnectionsButton.addEventListener('click', () => setActivePanel(false));
+
 function send(type: string, payload: Record<string, unknown> = {}): void {
     if (ws.readyState !== WebSocket.OPEN) return;
     ws.send(JSON.stringify({ type, ...payload }));
@@ -118,7 +140,7 @@ function showMessage(message: string, kind: 'error' | 'info' = 'info'): void {
 }
 
 function setConnectionStatus(message: string): void {
-    connectionBanner.textContent = message;
+    // connectionBanner.textContent = message;
 }
 
 function parsePathRoomId(): string | null {
@@ -152,9 +174,9 @@ function renderSheet(): void {
         const container = document.createElement('div');
         container.className = `sheet-row ${color}`;
 
-        const heading = document.createElement('strong');
-        heading.textContent = color.toUpperCase();
-        container.appendChild(heading);
+        // const heading = document.createElement('strong');
+        // heading.textContent = color.toUpperCase();
+        // container.appendChild(heading);
 
         const values = document.createElement('div');
         values.className = 'numbers';
@@ -164,7 +186,11 @@ function renderSheet(): void {
         const max = sorted[sorted.length - 1] ?? -Infinity;
         const min = sorted[0] ?? Infinity;
 
-        for (const value of rowOrder[color]) {
+        const rowValues = rowOrder[color];
+        const isRowLocked = room?.lockedColors.includes(color);
+
+        for (let i = 0; i < rowValues.length; i++) {
+            const value = rowValues[i]!;
             const button = document.createElement('button');
             button.type = 'button';
             button.textContent = String(value);
@@ -181,29 +207,47 @@ function renderSheet(): void {
                 allowed = value < min;
             }
 
-            button.disabled = !allowed;
+            const isLast = i === rowValues.length - 1;
+            const canLockRow = selected.length >= 5;
+
+            // Determine if button should be disabled
+            if (isRowLocked) {
+                // Once a row is locked, all its buttons are disabled
+                button.disabled = true;
+            } else if (isLast) {
+                // Last button only enabled if player has 5+ marked in this row
+                button.disabled = !canLockRow;
+            } else {
+                // Normal progression rules apply
+                button.disabled = !allowed;
+            }
+
+            // Add lock indicator to the last button if it can be locked
+            if (isLast && canLockRow && !isRowLocked) {
+                button.classList.add('lock-button');
+                button.setAttribute('data-color', color);
+                button.setAttribute('aria-label', `Select final value and lock ${color} row`);
+            }
 
             button.addEventListener('click', () => {
-                if (!allowed) return;
+                // Safety checks (redundant with button.disabled but clarify intent)
+                if (isRowLocked) return;
+                if (isLast && !canLockRow) return;
+                if (!isLast && !allowed) return;
+
                 localSheet.rows[color] = [...selected, value];
                 renderSheet();
                 send('QWIXX_UPDATE_SHEET', { sheet: localSheet });
+                if (isLast) {
+                    // Selecting the last number locks the row for all players
+                    send('QWIXX_LOCK_COLOR', { color });
+                }
             });
 
             values.appendChild(button);
         }
 
         container.appendChild(values);
-
-        const lockButton = document.createElement('button');
-        lockButton.type = 'button';
-        lockButton.textContent = `Lock ${color}`;
-        lockButton.className = 'lock';
-        const canLock = selected.length >= 5 && !room?.lockedColors.includes(color);
-        lockButton.disabled = !canLock;
-        lockButton.addEventListener('click', () => send('QWIXX_LOCK_COLOR', { color }));
-        container.appendChild(lockButton);
-
         rowsEl.appendChild(container);
     });
 
@@ -296,8 +340,9 @@ function updateTimer(deadlineMs: number | null): void {
 function updateRoomUI(snapshot: RoomSnapshot): void {
     room = snapshot;
     lobbySection.classList.add('hidden');
-    roomSection.classList.remove('hidden');
+    gameroomSection.classList.remove('hidden');
     scoreSection.classList.remove('hidden');
+    setActivePanel(true);
 
     pushRoomPath(snapshot.roomId);
 
@@ -380,7 +425,7 @@ penaltyUpButton.addEventListener('click', () => {
 });
 
 ws.addEventListener('open', () => {
-    setConnectionStatus('Connected');
+    // setConnectionStatus('Connected');
     ws.send(`OPEN::${username}`);
     send('QWIXX_SET_NAME', { username });
 
@@ -392,8 +437,8 @@ ws.addEventListener('open', () => {
 });
 
 ws.addEventListener('close', () => {
-    setConnectionStatus('Disconnected from room server');
-    showMessage('Connection closed.', 'error');
+    // setConnectionStatus('Disconnected from room server');
+    showMessage('Connection closed. Disconnected from room server.', 'error');
 });
 
 ws.addEventListener('error', () => {
